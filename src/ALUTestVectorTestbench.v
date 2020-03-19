@@ -38,7 +38,7 @@ module ALUTestVectorTestbench();
         input add_rshift_type;
         if ( REFout !== DUTout ) begin
             $display("FAIL: Incorrect result for opcode %b, funct: %b, add_rshift_type: %b", opcode, funct, add_rshift_type);
-            $display("\tA: 0x%h, B: 0x%h, DUTout: 0x%h, REFout: 0x%h", A, B, DUTout, REFout);
+            $display("\tA: 0x%b, B: 0x%b, DUTout: 0x%b, REFout: 0x%b", A, B, DUTout, REFout);
         $finish();
         end
         else begin

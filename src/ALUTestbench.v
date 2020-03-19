@@ -95,8 +95,135 @@ module ALUTestbench();
             B = {16'hFFFF, 1'b1, rand_15};
             // Set funct random to test that it doesn't affect non-R-type insts
 
+		
+		//Tests for R-type instructions
+		opcode = `OPC_ARI_RTYPE;
+		funct = `FNC_ADD_SUB;
+		add_rshift_type = `FNC2_ADD;
+		REFout = A + B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_ADD_SUB;
+		add_rshift_type = `FNC2_SUB;
+		REFout = A - B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_ADD_SUB;
+		add_rshift_type = `FNC2_ADD;
+		REFout = A + B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SLL;
+		add_rshift_type = $random & 3'b111;
+		REFout = A << B[4:0];
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SLT;
+		add_rshift_type = $random & 3'b111;
+		REFout = ($signed(A) < $signed(B)) ? 1 : 0;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SLTU;
+		add_rshift_type = $random & 3'b111;
+		REFout = (A < B) ? 1 : 0;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_XOR;
+		add_rshift_type = $random & 3'b111;
+		REFout = A ^ B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_OR;
+		add_rshift_type = $random & 3'b111;
+		REFout = A | B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_AND;
+		add_rshift_type = $random & 3'b111;
+		REFout = A & B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SRL_SRA;
+		add_rshift_type = `FNC2_SRL;
+		REFout = A >> B[4:0];
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SRL_SRA;
+		add_rshift_type = `FNC2_SRA;
+		REFout = $signed(A) >>> B[4:0];
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+	
+		//Tests for I-type instructions
+		opcode = `OPC_ARI_ITYPE;
+		funct = `FNC_ADD_SUB;
+		add_rshift_type =  $signed(A) >>> B[4:0];
+		REFout = A + B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SLL;
+		add_rshift_type = $random & 3'b111;
+		REFout = A << B[4:0];
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SLT;
+		add_rshift_type = $random & 3'b111;
+		REFout = ($signed(A) < $signed(B)) ? 1 : 0;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SLTU;
+		add_rshift_type = $random & 3'b111;
+		REFout = (A < B) ? 1 : 0;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_XOR;
+		add_rshift_type = $random & 3'b111;
+		REFout = A ^ B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_OR;
+		add_rshift_type = $random & 3'b111;
+		REFout = A | B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_AND;
+		add_rshift_type = $random & 3'b111;
+		REFout = A & B;
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SRL_SRA;
+		add_rshift_type = `FNC2_SRL;
+		REFout = A >> B[4:0];
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+		funct = `FNC_SRL_SRA;
+		add_rshift_type = `FNC2_SRA;
+		REFout = $signed(A) >>> B[4:0];
+		#1
+		checkOutput(opcode, funct, add_rshift_type);
+
+
+
             // Tests for the non R-Type and I-Type instructions.
-            // Add your own tests for R-Type and I-Type instructions
             opcode = `OPC_LUI;
             // Set funct random to verify that the value doesn't matter
             funct = $random & 3'b111;
@@ -136,7 +263,45 @@ module ALUTestbench();
         end
         ///////////////////////////////
         // Hard coded tests go here
-        ///////////////////////////////
+        //////////////////////////////
+
+		
+	opcode = `OPC_ARI_RTYPE;
+	funct = `FNC_ADD_SUB;
+	add_rshift_type = `FNC2_ADD;
+	A=32'hffff_ffff;
+	B=32'h0000_0001;
+	REFout = 32'h0000_0000;
+	#1
+	checkOutput(opcode, funct, add_rshift_type);
+		
+	opcode = `OPC_ARI_RTYPE;
+	funct = `FNC_ADD_SUB;
+	add_rshift_type = `FNC2_SUB;
+	A=32'h0000_0000;
+	B=32'h0000_0001;
+	REFout = 32'hffff_ffff;
+	#1
+	checkOutput(opcode, funct, add_rshift_type);
+		
+	opcode = `OPC_ARI_RTYPE;
+	funct = `FNC_SRL_SRA;
+	add_rshift_type = `FNC2_SRA;
+	A=32'hfedc_ba12;
+	B=32'h0000_0004;
+	REFout = 32'hffed_cba1;
+	#1
+	checkOutput(opcode, funct, add_rshift_type);
+	
+	opcode = `OPC_ARI_RTYPE;
+	funct = `FNC_SRL_SRA;
+	add_rshift_type = `FNC2_SRL;
+	A=32'hfedc_ba12;
+	B=32'h0000_0004;
+	REFout = 32'h0fed_cba1;
+	#1
+	checkOutput(opcode, funct, add_rshift_type);
+
 
         $display("\n\nALL TESTS PASSED!");
         $vcdplusoff;
