@@ -1,10 +1,5 @@
-// Module: ALUdecoder
-// Desc:   Sets the ALU operation
-// Inputs: opcode: the top 6 bits of the instruction
-//         funct: the funct, in the case of r-type instructions
-//         add_rshift_type: selects whether an ADD vs SUB, or an SRA vs SRL
-// Outputs: ALUop: Selects the ALU's operation
-//
+// Module: control.v
+// Controller for Riscv151.v
 
 `include "Opcode.vh"
 `include "ALUop.vh"
@@ -27,7 +22,7 @@ module control(
   output [3:0]      ALUop,
   output            A_Sel, B_Sel,
   output            CSR_Sel,
-  output [2:0]      ST_Size, // 3 types
+  output [1:0]      ST_Size, // 3 types
 
   output            Bypass_A,
   output            Bypass_B,
@@ -38,7 +33,7 @@ module control(
   output            RegFile_WE,
   output            CSR_WE,
   output [1:0]      WB_Sel,
-  output [2:0]      LD_Size
+  output [1:0]      LD_Size
 );
   localparam WIDTH = 32;
   localparam ALU_WIDTH = 4;
