@@ -13,7 +13,7 @@ module control(
   // Stage I
   output reg [1:0]  PC_Sel,
   output            ICache_RE, // UNUSED?
-  output reg [2:0]  Imm_Sel, // 0 if I type, 1 if S type: 5 types
+  output reg [2:0]  ImmSel, // 0 if I type, 1 if S type: 5 types
 
   // Stage X
   input             BrEq, BrLT,

@@ -53,7 +53,7 @@ wire [31:0] No_OP;
 assign No_OP = 32'b000000000000_00000_000_00000_0010011; //not sure this is the best way to write this
 wire [31:0] s1_inst;
 wire inst_kill; //from controller
-assign s1_inst = (inst_kill) ? No_OP : s1_inst_read;
+assign s1_inst = (inst_kill) ? `INSTR_NOP : s1_inst_read;
 
 //Register file
 wire [31:0] s1_reg_SrcA, s1_reg_SrcB, s3_WB;
@@ -77,11 +77,20 @@ assign s1_CSR_imm = s1_inst[19:15];
 
 //Immediate generator
 wire ImmSel; //from controller, 0 if I type, 1 if S type
-wire [4:0] imm_low5bits;
+//wire [4:0] imm_low5bits;
 wire [31:0] s1_imm;
-assign imm_low5bits = (ImmSel) ? s1_inst[4:0] : s1_inst[24:20];
-assign s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],imm_low5bits};
-
+//assign imm_low5bits = (ImmSel) ? s1_inst[11:7] : s1_inst[24:20];
+//assign s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],imm_low5bits};
+always@(*) begin
+	case(ImmSel)
+		`IMMSEL_I: s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],s1_inst[24:20]};
+		`IMMSEL_S: s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],s1_inst[11:7]};
+		`IMMSEL_SB: s1_imm = {{20{s1_inst[31]}},s1_inst[7],s1_inst[30:25],s1_inst[11:8],{1'b0}};
+		`IMMSEL_U: s1_imm = {s1_inst[31],s1_inst[30:20],s1_inst[19:12],{12'd0}};
+		`IMMSEL_UJ: s1_imm = {{12{s1_inst[31]}},s1_inst[19:12],s1_inst[20],s1_inst[30:25],s1_inst[24:21],{1'b0}};
+		default: s1_imm = 32'd0;
+	endcase
+end
 
 //s1 to s2 registers
 wire [31:0] s2_PC, s2_reg_SrcA, s2_reg_SrcB, s2_imm, s2_PCplus4;
