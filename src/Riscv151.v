@@ -28,7 +28,8 @@ localparam DEPTH = (1 << LOGDEPTH);
 
 
 //Program count
-wire [31:0] s0_PC, s1_PC, s1_PCplus4;
+wire [31:0] s1_PC, s1_PCplus4;
+reg [31:0] s0_PC;
 wire PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
 assign s1_PCplus4 = s1_PC + 4;
 wire [31:0] s2_ALUout;
@@ -56,13 +57,14 @@ wire inst_kill; //from controller
 assign s1_inst = (inst_kill) ? `INSTR_NOP : s1_inst_read;
 
 //Register file
-wire [31:0] s1_reg_SrcA, s1_reg_SrcB, s3_WB;
+wire [31:0] s1_reg_SrcA, s1_reg_SrcB;
+reg [31:0] s3_WB;
 wire [4:0] s3_A0, s1_A1, s1_A2;
-wire [31:0] s1_A0;
+wire [4:0] s1_A0;
 wire RegFile_WE; //from controller
 //name is inccorectly listed in source code as REGFILE_1R2W
 REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) regFile (
-    .d0(s3_WB), .addr0(s1_A0), .we0(RegFile_WE),
+    .d0(s3_WB), .addr0(s3_A0), .we0(RegFile_WE),
     .q1(s1_reg_SrcA), .addr1(s1_A1),
     .q2(s1_reg_SrcB), .addr2(s1_A2),
     .clk(clk) );
@@ -78,7 +80,7 @@ assign s1_CSR_imm = s1_inst[19:15];
 //Immediate generator
 wire ImmSel; //from controller, 0 if I type, 1 if S type
 //wire [4:0] imm_low5bits;
-wire [31:0] s1_imm;
+reg [31:0] s1_imm;
 //assign imm_low5bits = (ImmSel) ? s1_inst[11:7] : s1_inst[24:20];
 //assign s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],imm_low5bits};
 always@(*) begin
@@ -134,7 +136,7 @@ ALU myALU (
 
 //Store mask
 wire [1:0] st_size;
-wire [31:0] s2_WD;
+reg [31:0] s2_WD;
 //very unsure on this one
 always@(*) begin
 	case(st_size) //0=word, 1=half, 2=byte
@@ -175,7 +177,7 @@ assign s3_ReadData = dcache_dout;
 //Load mask
 wire [1:0] ld_size; //from controller
 wire ld_sign; //from controller, 1 for signed, 0 for unsigned
-wire [31:0] s3_LoadData;
+reg [31:0] s3_LoadData;
 always@(*) begin
 	case(ld_size) //0=word, 1=half, 2=byte
 		2'd0: s3_LoadData = s3_ReadData;
@@ -202,7 +204,7 @@ end
 //Bypass
 wire [31:0] s3_WB_delay;
 wire bypass_delay; //from controller
-REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_dealy), .d(s3_WB), .rst(reset), .clk(clk)); 
+REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .clk(clk)); 
 assign s2_bypass_value = (bypass_delay) ? s3_WB_delay : s3_WB;
 
 		
