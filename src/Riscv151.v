@@ -62,7 +62,7 @@ reg [31:0] s3_WB;
 wire [4:0] s3_A0, s1_A1, s1_A2;
 wire [4:0] s1_A0;
 wire RegFile_WE; //from controller
-//name is inccorectly listed in source code as REGFILE_1R2W
+
 REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) regFile (
     .d0(s3_WB), .addr0(s3_A0), .we0(RegFile_WE),
     .q1(s1_reg_SrcA), .addr1(s1_A1),
