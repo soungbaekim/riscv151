@@ -28,9 +28,10 @@ localparam DEPTH = (1 << LOGDEPTH);
 
 
 //Program count
-wire [31:0] s0_PC; s1_PC, s1_PCplus4
+wire [31:0] s0_PC, s1_PC, s1_PCplus4;
 wire PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
 assign s1_PCplus4 = s1_PC + 4;
+wire [31:0] s2_ALUout;
 REGISTER_R #(.N(WIDTH)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
 always@(*) begin
 	case(PCsel)
@@ -57,6 +58,7 @@ assign s1_inst = (inst_kill) ? No_OP : s1_inst_read;
 //Register file
 wire [31:0] s1_reg_SrcA, s1_reg_SrcB, s3_WB;
 wire [4:0] s3_A0, s1_A1, s1_A2;
+wire [31:0] s1_A0;
 wire RegFile_WE; //from controller
 //name is inccorectly listed in source code as REGFILE_1R2W
 REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) regFile (
@@ -67,7 +69,6 @@ REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) regFile (
 
 //Breaking up insruction
 wire [4:0] s1_CSR_imm;
-wire [31:0] s1_A0;
 assign s1_A0 = s1_inst[11:7];
 assign s1_A1 = s1_inst[19:15];
 assign s1_A2 = s1_inst[24:20];
@@ -79,7 +80,7 @@ wire ImmSel; //from controller, 0 if I type, 1 if S type
 wire [4:0] imm_low5bits;
 wire [31:0] s1_imm;
 assign imm_low5bits = (ImmSel) ? s1_inst[4:0] : s1_inst[24:20];
-assign s1_imm = {21{s1_inst[31]},s1_inst[30:25],imm_low5bits};
+assign s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],imm_low5bits};
 
 
 //s1 to s2 registers
@@ -110,7 +111,7 @@ assign BrLT = ((BrUn==0 && s2_SrcA<s2_SrcB) || (BrUn==1 && $signed(s2_SrcA)<$sig
 
 
 //input MUXes to ALU
-wire Asel, Bsel; //from controller
+wire ASel, BSel; //from controller
 wire [31:0] s2_ALUin_A, s2_ALUin_B;
 assign s2_ALUin_A = (ASel) ? s2_PC : s2_SrcA;
 assign s2_ALUin_B = (BSel) ? s2_imm : s2_SrcB;
@@ -118,7 +119,6 @@ assign s2_ALUin_B = (BSel) ? s2_imm : s2_SrcB;
 
 //ALU
 wire [3:0] ALUop; //from controller
-wire [31:0] s2_ALUout;
 ALU myALU (
 	.A(s2_ALUin_A), .B(s2_ALUin_B),
 	.ALUop(ALUop), .Out(s2_ALUout));
@@ -130,8 +130,8 @@ wire [31:0] s2_WD;
 always@(*) begin
 	case(st_size) //0=word, 1=half, 2=byte
 		2'd0: s2_WD = s2_SrcB;
-		2'd1: s2_WD = {16{s2_SrcB[15]},s2_SrcB[15:0]};
-		2'd2: s2_WD = {24{s2_SrcB[7]},s2_SrcB[7:0]};
+		2'd1: s2_WD = {{16{s2_SrcB[15]}},s2_SrcB[15:0]};
+		2'd2: s2_WD = {{24{s2_SrcB[7]}},s2_SrcB[7:0]};
 		default: s2_WD = s2_SrcB; 
 	endcase
 end
@@ -139,7 +139,7 @@ end
 
 //CSR imm zero extend
 wire [31:0] s2_CSR_imm_ext;
-assign s2_CSR_imm_ext = {27'd0,s2_CSR_imm};
+assign s2_CSR_imm_ext = {{27'd0},s2_CSR_imm};
 
 //CSR mux
 wire [31:0] s2_CSR_WD;
@@ -170,8 +170,8 @@ wire [31:0] s3_LoadData;
 always@(*) begin
 	case(ld_size) //0=word, 1=half, 2=byte
 		2'd0: s3_LoadData = s3_ReadData;
-		2'd1: s3_LoadData = (ld_sign) ? {16{s3_ReadData[15]},s3_ReadData[15:0]} : {16'd0, s3_ReadData[15:0]};
-		2'd2: s3_LoadData = (ld_sign) ? {24{s3_ReadData[7]},s3_ReadData[7:0]}   : {24'd0, s3_ReadData[7:0]};
+		2'd1: s3_LoadData = (ld_sign) ? {{16{s3_ReadData[15]}},s3_ReadData[15:0]} : {{16'd0}, s3_ReadData[15:0]};
+		2'd2: s3_LoadData = (ld_sign) ? {{24{s3_ReadData[7]}},s3_ReadData[7:0]}   : {{24'd0}, s3_ReadData[7:0]};
 		default: s3_LoadData = s3_ReadData; 
 	endcase
 end
