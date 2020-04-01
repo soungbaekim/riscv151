@@ -30,7 +30,7 @@ module control(
   output 	    Bypass_Delay,
 
   // Stage M
-  output            DCache_WE,
+  output [3:0]      DCache_WE, //not sure why this is 4 bits
   output            RegFile_WE,
   output            CSR_WE,
   output [1:0]      WB_Sel,
@@ -49,8 +49,8 @@ module control(
   assign rd = inst[11:7];
   assign rs1 = inst[19:15];
   assign rs2 = inst[24:20];
-  assign func3 = inst[12:14];
-  assign func7 = inst[25:31];
+  assign func3 = inst[14:12];
+  assign func7 = inst[31:25];
 
   // ALU Decoder
   wire [3:0] aluop_next;
@@ -78,15 +78,17 @@ module control(
 
   // TODO: Branches
   wire in_b_val;
-  wire reg in_b_next, will_branch;
+  reg in_b_next, will_branch;
   REGISTER_R is_b_reg (.q(in_b_val), .d(in_b_next), .rst(reset), .clk(clk));
 
-  wire reg BrUn_next
+  reg BrUn_next;
   REGISTER_R br_un_reg (.q(BrUn), .d(BrUn_next), .rst(reset), .clk(clk));
 
 
   // Stage X Registers
-  wire reg csr_sel_next, a_sel_next, b_sel_next, bypass_a_next, bypass_b_next, bypass_delay_next; 
+  reg csr_sel_next, a_sel_next, b_sel_next;
+  wire bypass_a_next, bypass_b_next;
+  wire  bypass_delay_next; 
   //wire reg bypass_sel_next;
   REGISTER_R #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .clk(clk));
   REGISTER_R csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .clk(clk));
@@ -103,22 +105,22 @@ module control(
   REGISTER_R b_sel_reg(.q(B_Sel), .d(b_sel_next), .rst(reset), .clk(clk));
 
   // Stage M registers
-  wire reg dcache_we_next;   /* See Notes below */
+  reg [3:0] dcache_we_next;   /* See Notes below */
   //wire dcache_we_imm;
   //REGISTER_R dcache_we_reg1(.q(dcache_we_imm), .d(dcache_we_next), .rst(reset), .clk(clk));
-  REGISTER_R dcache_we_reg2(.q(DCache_WE), .d(dcache_we_next), .rst(reset), .clk(clk));
+  REGISTER_R #(.N(4)) dcache_we_reg2(.q(DCache_WE), .d(dcache_we_next), .rst(reset), .clk(clk));
 
-  wire reg csr_we_next;
+  reg csr_we_next;
   wire csr_we_imm;
   REGISTER_R csr_we_reg1(.q(csr_we_imm), .d(csr_we_next), .rst(reset), .clk(clk));
   REGISTER_R csr_we_reg2(.q(CSR_WE), .d(csr_we_imm), .rst(reset), .clk(clk));
 
-  wire reg [1:0] wb_sel_next;
+  reg [1:0] wb_sel_next;
   wire [1:0] wb_sel_imm;
   REGISTER_R #(.N(2)) wb_sel_reg1(.q(wb_sel_imm), .d(wb_sel_next), .rst(reset), .clk(clk));
   REGISTER_R #(.N(2)) wb_sel_reg2(.q(WB_Sel), .d(wb_sel_imm), .rst(reset), .clk(clk));
 
-  wire reg regfile_we_next; /* See Notes below */
+  reg regfile_we_next; /* See Notes below */
   wire regfile_we_imm1;
   //wire regfile_we_imm2;
   // Another register for delay since technically the one after?
@@ -172,7 +174,7 @@ module control(
       a_sel_next = `ASEL_REG;
       b_sel_next = `BSEL_IMM;
 
-      dcache_we_next = `WRITE_DISABLE;
+      dcache_we_next = `WRITE_DISABLE4;
       regfile_we_next = `WRITE_DISABLE;
 
       wb_sel_next = `WBSEL_ALU;
@@ -187,7 +189,7 @@ module control(
         a_sel_next = `ASEL_REG;
         b_sel_next = `BSEL_IMM;
 
-        dcache_we_next = `WRITE_DISABLE;
+        dcache_we_next = `WRITE_DISABLE4;
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -199,15 +201,15 @@ module control(
         a_sel_next = `ASEL_PC;
         b_sel_next = `BSEL_IMM;
 
-        dcache_we_next = `WRITE_DISABLE;
+        dcache_we_next = `WRITE_DISABLE4;
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
       end
 
       // Jump instructions
-      `OPC_JAL         7'b1101111
-      `OPC_JALR        7'b1100111
+     // `OPC_JAL         7'b1101111
+     // `OPC_JALR        7'b1100111
 
       // Branch instructions
       `OPC_BRANCH: begin
@@ -217,7 +219,7 @@ module control(
         a_sel_next = `ASEL_PC;
         b_sel_next = `BSEL_IMM;
 
-        dcache_we_next = `WRITE_DISABLE;
+        dcache_we_next = `WRITE_DISABLE4;
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -237,7 +239,7 @@ module control(
         a_sel_next = `ASEL_REG;
         b_sel_next = `BSEL_IMM;
 
-        dcache_we_next = `WRITE_ENABLE;
+        dcache_we_next = `WRITE_ENABLE4;
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -249,7 +251,7 @@ module control(
         a_sel_next = `ASEL_REG;
         b_sel_next = `BSEL_IMM;
 
-        dcache_we_next = `WRITE_DISABLE;
+        dcache_we_next = `WRITE_DISABLE4;
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_DATA;
@@ -258,12 +260,12 @@ module control(
       // Arithmetic instructions
       `OPC_ARI_RTYPE: begin
         PC_Sel = `PCSEL_PLUS4;
-        ImmSel = `IMMSEL_R;
+        ImmSel = `IMMSEL_I; //we won't be using this so shouldn't matter
 
         a_sel_next = `ASEL_REG;
         b_sel_next = `BSEL_REG;
 
-        dcache_we_next = `WRITE_DISABLE;
+        dcache_we_next = `WRITE_DISABLE4;
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -275,7 +277,7 @@ module control(
         a_sel_next = `ASEL_REG;
         b_sel_next = `BSEL_IMM;
 
-        dcache_we_next = `WRITE_DISABLE;
+        dcache_we_next = `WRITE_DISABLE4;
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -286,15 +288,6 @@ module control(
 
     end // else
   end // always block
-
-
-
-
-
-
-
-
-
 
 endmodule
 

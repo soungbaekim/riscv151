@@ -25,7 +25,7 @@ localparam DEPTH = (1 << LOGDEPTH);
 //Program count
 wire [31:0] s1_PC, s1_PCplus4;
 reg [31:0] s0_PC;
-wire PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
+wire [1:0] PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
 assign s1_PCplus4 = s1_PC + 4;
 wire [31:0] s2_ALUout;
 REGISTER_R #(.N(WIDTH)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
@@ -73,7 +73,7 @@ assign s1_CSR_imm = s1_inst[19:15];
 
 
 //Immediate generator
-wire ImmSel; //from controller, 0 if I type, 1 if S type
+wire [2:0] ImmSel; //from controller, 5 options
 //wire [4:0] imm_low5bits;
 reg [31:0] s1_imm;
 //assign imm_low5bits = (ImmSel) ? s1_inst[11:7] : s1_inst[24:20];

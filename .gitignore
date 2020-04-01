@@ -1,1 +1,7 @@
 *.yml
+hammer*
+output.json
+*.swp
+build/*
+asm_output/*
+*.input

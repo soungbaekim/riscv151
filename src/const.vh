@@ -64,4 +64,9 @@
 `define WRITE_DISABLE 1'b0
 `define WRITE_ENABLE 1'b1
 
+
+`define WRITE_DISABLE4 4'b0000
+`define WRITE_ENABLE4 4'b1111
+
+
 `endif //CONST
