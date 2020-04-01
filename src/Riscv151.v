@@ -28,7 +28,7 @@ reg [31:0] s0_PC;
 wire [1:0] PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
 assign s1_PCplus4 = s1_PC + 4;
 wire [31:0] s2_ALUout;
-REGISTER_R #(.N(WIDTH)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
+REGISTER_R #(.N(WIDTH), .INIT(`PC_RESET)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
 always@(*) begin
 	case(PCsel)
 		2'd0: s0_PC=s1_PCplus4;
@@ -216,6 +216,7 @@ control myController(
 	.PC_Sel(PCsel),
  	.ICache_RE(icache_re),
 	.ImmSel(ImmSel), // 0 if I type, 1 if S type: 5 types
+	.Inst_Kill(inst_kill),
 //Stage X
 	.BrEq(BrEq), .BrLT(BrLT),
 	.BrUn(BrUn),

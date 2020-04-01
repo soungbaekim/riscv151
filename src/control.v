@@ -14,6 +14,7 @@ module control(
   output reg [1:0]  PC_Sel,
   output            ICache_RE, // UNUSED?
   output reg [2:0]  ImmSel, // 0 if I type, 1 if S type: 5 types
+  output	    Inst_Kill,
 
   // Stage X
   input             BrEq, BrLT,
@@ -75,6 +76,7 @@ module control(
   wire nop_I, nop_X, nop_M;
   REGISTER_R nop_IX_reg(.q(nop_X), .d(nop_I), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
+  assign Inst_Kill = 1'b0;
 
   // TODO: Branches
   wire in_b_val;
