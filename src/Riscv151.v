@@ -18,14 +18,9 @@ module Riscv151(
 
 );
 
-    // TODO: Your code
-    // Please use REGFILE_1W2R for your register file
-    // (two async read ports, 1 sync write port)
-    // Please use REGISTER* modules for all sequential logic
 localparam integer WIDTH = 32;
 localparam integer LOGDEPTH = 5;
 localparam DEPTH = (1 << LOGDEPTH);
-
 
 //Program count
 wire [31:0] s1_PC, s1_PCplus4;
@@ -137,12 +132,11 @@ ALU myALU (
 //Store mask
 wire [1:0] st_size;
 reg [31:0] s2_WD;
-//very unsure on this one
 always@(*) begin
-	case(st_size) //0=word, 1=half, 2=byte
-		2'd0: s2_WD = s2_SrcB;
+	case(st_size) //2=word, 1=half, 0=byte
+		2'd2: s2_WD = s2_SrcB;
 		2'd1: s2_WD = {{16{s2_SrcB[15]}},s2_SrcB[15:0]};
-		2'd2: s2_WD = {{24{s2_SrcB[7]}},s2_SrcB[7:0]};
+		2'd0: s2_WD = {{24{s2_SrcB[7]}},s2_SrcB[7:0]};
 		default: s2_WD = s2_SrcB; 
 	endcase
 end
@@ -175,18 +169,22 @@ assign s3_ReadData = dcache_dout;
 
 
 //Load mask
-wire [1:0] ld_size; //from controller
-wire ld_sign; //from controller, 1 for signed, 0 for unsigned
+wire [2:0] ld_size; //from controller
 reg [31:0] s3_LoadData;
 always@(*) begin
-	case(ld_size) //0=word, 1=half, 2=byte
-		2'd0: s3_LoadData = s3_ReadData;
-		2'd1: s3_LoadData = (ld_sign) ? {{16{s3_ReadData[15]}},s3_ReadData[15:0]} : {{16'd0}, s3_ReadData[15:0]};
-		2'd2: s3_LoadData = (ld_sign) ? {{24{s3_ReadData[7]}},s3_ReadData[7:0]}   : {{24'd0}, s3_ReadData[7:0]};
-		default: s3_LoadData = s3_ReadData; 
+	case(ld_size)
+		`FNC_LB: s3_LoadData = {{24{s3_ReadData[7]}},s3_ReadData[7:0]};
+		`FNC_LH: s3_LoadData = {{16{s3_ReadData[15]}},s3_ReadData[15:0]};
+		`FNC_LW: s3_LoadData = s3_ReadData;
+		`FNC_LBU: s3_LoadData = {{24'd0}, s3_ReadData[7:0]};
+		`FNC_LHU: s3_LoadData = {{16'd0}, s3_ReadData[15:0]};
+		default: s3_LoadData = 32'd0; 
 	endcase
 end
 
+//CSR
+wire CSR_we; //from controller
+REGISTER_R_CE #(.N(WIDTH)) csr_reg(.q(csr), .d(s3_CSR_WD), .rst(reset), .ce(CSR_we), .clk(clk));
 
  
 //WB mux
@@ -208,6 +206,35 @@ REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .clk
 assign s2_bypass_value = (bypass_delay) ? s3_WB_delay : s3_WB;
 
 		
+
+//Controller
+control myController(
+	.clk(clk),
+	.reset(reset),
+	.inst(s1_inst),
+ // Stage I
+	.PC_Sel(PCsel),
+ 	.ICache_RE(icache_re),
+	.ImmSel(ImmSel), // 0 if I type, 1 if S type: 5 types
+//Stage X
+	.BrEq(BrEq), .BrLT(BrLT),
+	.BrUn(BrUn),
+	.ALUop(ALUop),
+	.A_Sel(ASel), .B_Sel(BSel),
+ 	.CSR_Sel(CSR_sel),
+	.ST_Size(st_size),
+	.Bypass_A(bypass_A),
+	.Bypass_B(bypass_B),
+ 	//Bypass_Sel,
+	.Bypass_Delay(bypass_delay),
+// Stage M
+	.DCache_WE(dcache_we),
+	.RegFile_WE(RegFile_WE),
+	.CSR_WE(CSR_we),
+	.WB_Sel(WBSel),
+	.LD_Size(ld_size)
+);
+ 
 
 
 

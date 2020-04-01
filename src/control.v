@@ -26,14 +26,15 @@ module control(
 
   output            Bypass_A,
   output            Bypass_B,
-  output            Bypass_Sel,
+ // output            Bypass_Sel,
+  output 	    Bypass_Delay,
 
   // Stage M
   output            DCache_WE,
   output            RegFile_WE,
   output            CSR_WE,
   output [1:0]      WB_Sel,
-  output [1:0]      LD_Size
+  output [2:0]      LD_Size
 );
   localparam WIDTH = 32;
   localparam ALU_WIDTH = 4;
@@ -56,7 +57,7 @@ module control(
   ALUdec aludecoder(.opcode(opcode), .funct(func3), .add_rshift_type(inst[30]), .ALUop(aluop_next));
 
   // Control Registers
-  wire [2:0] func3_X func3_M
+  wire [2:0] func3_X, func3_M;
   REGISTER_R #(.N(3)) func3_X_reg(.q(func3_X), .d(func3), .rst(reset), .clk(clk));
   REGISTER_R #(.N(3)) func3_M_reg(.q(func3_M), .d(func3_X), .rst(reset), .clk(clk));
 
@@ -85,7 +86,8 @@ module control(
 
 
   // Stage X Registers
-  wire reg csr_sel_next, a_sel_next, b_sel_next, bypass_a_next, bypass_b_next, bypass_sel_next;
+  wire reg csr_sel_next, a_sel_next, b_sel_next, bypass_a_next, bypass_b_next, bypass_delay_next; 
+  //wire reg bypass_sel_next;
   REGISTER_R #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .clk(clk));
   REGISTER_R csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .clk(clk));
 
@@ -94,7 +96,8 @@ module control(
 
   REGISTER_R bypass_a_reg(.q(Bypass_A), .d(bypass_a_next), .rst(reset), .clk(clk));
   REGISTER_R bypass_b_reg(.q(Bypass_B), .d(bypass_b_next), .rst(reset), .clk(clk));
-  REGISTER_R bypass_sel_reg(.q(Bypass_Sel), .d(bypass_sel_next), .rst(reset), .clk(clk));
+  //REGISTER_R bypass_sel_reg(.q(Bypass_Sel), .d(bypass_sel_next), .rst(reset), .clk(clk));
+  REGISTER_R bypass_delay_reg(.q(Bypass_Delay), .d(bypass_delay_next), .rst(reset), .clk(clk));
 
   REGISTER_R a_sel_reg(.q(A_Sel), .d(a_sel_next), .rst(reset), .clk(clk));
   REGISTER_R b_sel_reg(.q(B_Sel), .d(b_sel_next), .rst(reset), .clk(clk));
@@ -126,13 +129,15 @@ module control(
 
 
   assign ICache_RE = 1'b1; // ALWAYS ON?
-  assign ST_Size = func3_X;
+  assign ST_Size = func3_X[1:0];
   assign LD_Size = func3_M;
 
   /* if it gets more complicated, move it to another module? */
   assign bypass_a_next = ((regfile_we_imm1 && (rs1 == rd_X)) || (RegFile_WE && (rs1 == rd_M))) ? `BYPASS_TRUE : `BYPASS_FALSE;
   assign bypass_b_next = ((regfile_we_imm1 && (rs2 == rd_X)) || (RegFile_WE && (rs2 == rd_M))) ? `BYPASS_TRUE : `BYPASS_FALSE;
-  assign bypass_sel_next = ((rs1 == rd_X) || (rs2 == rd_X)) ? `BYPASS_CURR : `BYPASS_DELAY;
+  //assign bypass_sel_next = ((rs1 == rd_X) || (rs2 == rd_X)) ? `BYPASS_CURR : `BYPASS_DELAY;
+  assign bypass_delay_next = ((rs1 == rd_X) || (rs2 == rd_X)) ? `BYPASS_CURR : `BYPASS_DELAY;
+
 
   always @(*) begin
     // default is nop
