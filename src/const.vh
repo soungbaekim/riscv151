@@ -15,6 +15,7 @@
 
 // PC address on reset
 `define PC_RESET 32'h00002000
+`define PC_RESET_MINUS4 32'h00001ffc
 
 // The NOP instruction
 `define INSTR_NOP {12'd0, 5'd0, `FNC_ADD_SUB, 5'd0, `OPC_ARI_ITYPE}
@@ -63,5 +64,10 @@
 
 `define WRITE_DISABLE 1'b0
 `define WRITE_ENABLE 1'b1
+
+
+`define WRITE_DISABLE4 4'b0000
+`define WRITE_ENABLE4 4'b1111
+
 
 `endif //CONST
