@@ -6,4 +6,3 @@ build/*
 asm_output/*
 *.input
 DVE*
-*.hex

@@ -28,7 +28,7 @@ reg [31:0] s0_PC;
 wire [1:0] PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
 assign s1_PCplus4 = s1_PC + 4;
 wire [31:0] s2_ALUout;
-REGISTER_R #(.N(WIDTH), .INIT(`PC_RESET)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
+REGISTER_R #(.N(WIDTH), .INIT(`PC_RESET_MINUS4)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
 always@(*) begin
 	case(PCsel)
 		2'd0: s0_PC=s1_PCplus4;
@@ -103,10 +103,10 @@ REGISTER_R #(.N(WIDTH)) s12_reg6(.q(s2_PCplus4), .d(s1_PCplus4), .rst(reset), .c
 
 //Bypass muxes
 wire [31:0] s2_SrcA, s2_SrcB;
-wire [31:0] s2_bypass_value;
-wire bypass_A, bypass_B;
-assign s2_SrcA = (bypass_A) ? s2_bypass_value : s2_reg_SrcA;
-assign s2_SrcB= (bypass_B) ? s2_bypass_value : s2_reg_SrcB;
+wire [31:0] s2_bypass_value_A, s2_bypass_value_B;
+wire bypass_A, bypass_B; //from controller
+assign s2_SrcA = (bypass_A) ? s2_bypass_value_A : s2_reg_SrcA;
+assign s2_SrcB= (bypass_B) ? s2_bypass_value_B : s2_reg_SrcB;
 
 
 //Branch compare
@@ -201,10 +201,10 @@ end
 
 //Bypass
 wire [31:0] s3_WB_delay;
-wire bypass_delay; //from controller
+wire bypass_delay_A, bypass_delay_B; //from controller
 REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .clk(clk)); 
-assign s2_bypass_value = (bypass_delay) ? s3_WB_delay : s3_WB;
-
+assign s2_bypass_value_A = (bypass_delay_A) ? s3_WB_delay : s3_WB;
+assign s2_bypass_value_B = (bypass_delay_B) ? s3_WB_delay : s3_WB;
 		
 
 //Controller
@@ -227,11 +227,12 @@ control myController(
 	.Bypass_A(bypass_A),
 	.Bypass_B(bypass_B),
  	//Bypass_Sel,
-	.Bypass_Delay(bypass_delay),
+	.Bypass_Delay_A(bypass_delay_A),
+	.Bypass_Delay_B(bypass_delay_B),
 // Stage M
 	.DCache_WE(dcache_we),
 	.RegFile_WE(RegFile_WE),
-	.CSR_WE(CSR_we),
+	.CSR_we(CSR_we),
 	.WB_Sel(WBSel),
 	.LD_Size(ld_size)
 );
