@@ -7,7 +7,7 @@ module Riscv151(
     // Memory system ports
     output [31:0] dcache_addr,
     output [31:0] icache_addr,
-    output [3:0] dcache_we,
+    output reg  [3:0] dcache_we,
     output dcache_re,
     output icache_re,
     output [31:0] dcache_din,
@@ -132,6 +132,7 @@ ALU myALU (
 //Store mask
 wire [1:0] st_size;
 reg [31:0] s2_WD;
+/*
 always@(*) begin
 	case(st_size) //2=word, 1=half, 0=byte
 		2'd2: s2_WD = s2_SrcB;
@@ -140,6 +141,27 @@ always@(*) begin
 		default: s2_WD = s2_SrcB; 
 	endcase
 end
+*/
+wire dcache_we_bit; //from controller
+wire [31:0] shiftedWord;
+//dcache_we_bit indicates whether a write will take place
+//dcache_we[3:0] indicates which bytes will be written
+//right now assuming that data doesn't write between words in memory
+always@(*) begin
+	case(s2_ALUout[1:0])
+		2'd0: shiftedWord = s2_SrcB;
+		2'd1: shiftedWord = s2_SrcB << 8;
+		2'd2: shiftedWord = s2_SrcB << 16;
+		2'd3: shiftedWord = s2_SrcB <<24; 
+	endcase
+
+	case(st_size)
+		`FNC_SB: dcache_we = 4'b0001;
+		`FNC_SH: dcache_we = 4'b0011;
+		`FNC_SW: dcache_we = 4'b1111;
+	endcase
+end
+
 
 
 //CSR imm zero extend
@@ -161,7 +183,6 @@ REGISTER_R #(.N(WIDTH)) s23_reg3(.q(s3_PCplus4), .d(s2_PCplus4), .rst(reset), .c
 
 
 //DCache
-//dcache_we and dcache_re coming from controller
 wire [31:0] s3_ReadData;
 assign dcache_addr = s2_ALUout;
 assign dcache_din = s2_WD;
@@ -230,7 +251,7 @@ control myController(
 	.Bypass_Delay_A(bypass_delay_A),
 	.Bypass_Delay_B(bypass_delay_B),
 // Stage M
-	.DCache_WE(dcache_we),
+	.DCache_WE(dcache_we_bit),
 	.RegFile_WE(RegFile_WE),
 	.CSR_we(CSR_we),
 	.WB_Sel(WBSel),
