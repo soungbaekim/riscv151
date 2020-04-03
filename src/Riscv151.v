@@ -143,25 +143,24 @@ always@(*) begin
 end
 */
 wire dcache_we_bit; //from controller
-wire [31:0] shiftedWord;
 //dcache_we_bit indicates whether a write will take place
 //dcache_we[3:0] indicates which bytes will be written
 //right now assuming that data doesn't write between words in memory
 always@(*) begin
 	case(s2_ALUout[1:0])
-		2'd0: shiftedWord = s2_SrcB;
-		2'd1: shiftedWord = s2_SrcB << 8;
-		2'd2: shiftedWord = s2_SrcB << 16;
-		2'd3: shiftedWord = s2_SrcB <<24; 
+		2'd0: s2_WD = s2_SrcB;
+		2'd1: s2_WD = s2_SrcB << 8;
+		2'd2: s2_WD = s2_SrcB << 16;
+		2'd3: s2_WD = s2_SrcB <<24; 
 	endcase
 
 	case(st_size)
 		`FNC_SB: dcache_we = 4'b0001;
 		`FNC_SH: dcache_we = 4'b0011;
 		`FNC_SW: dcache_we = 4'b1111;
+		default: dcache_we = 4'b0000;
 	endcase
 end
-
 
 
 //CSR imm zero extend
