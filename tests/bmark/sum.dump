@@ -1,116 +1,147 @@
 
-sum.rv:     file format elf32-littleriscv
+sum.elf:     file format elf32-littleriscv
 
 
 Disassembly of section .text:
 
-00002000 <_start>:
-    2000:	00080137          	lui	sp,0x80
-    2004:	004000ef          	jal	2008 <main>
+01000000 <main>:
+ 1000000:	fe010113          	addi	x2,x2,-32
+ 1000004:	00112e23          	sw	x1,28(x2)
+ 1000008:	00812c23          	sw	x8,24(x2)
+ 100000c:	02010413          	addi	x8,x2,32
+ 1000010:	fe042623          	sw	x0,-20(x8)
+ 1000014:	0300006f          	j	1000044 <main+0x44>
+ 1000018:	fec42783          	lw	x15,-20(x8)
+ 100001c:	00178713          	addi	x14,x15,1
+ 1000020:	00000697          	auipc	x13,0x0
+ 1000024:	15868693          	addi	x13,x13,344 # 1000178 <x>
+ 1000028:	fec42783          	lw	x15,-20(x8)
+ 100002c:	00279793          	slli	x15,x15,0x2
+ 1000030:	00f687b3          	add	x15,x13,x15
+ 1000034:	00e7a023          	sw	x14,0(x15)
+ 1000038:	fec42783          	lw	x15,-20(x8)
+ 100003c:	00178793          	addi	x15,x15,1
+ 1000040:	fef42623          	sw	x15,-20(x8)
+ 1000044:	fec42703          	lw	x14,-20(x8)
+ 1000048:	3ff00793          	li	x15,1023
+ 100004c:	fce7d6e3          	bge	x15,x14,1000018 <main+0x18>
+ 1000050:	fe042623          	sw	x0,-20(x8)
+ 1000054:	0940006f          	j	10000e8 <main+0xe8>
+ 1000058:	00001717          	auipc	x14,0x1
+ 100005c:	12070713          	addi	x14,x14,288 # 1001178 <y>
+ 1000060:	fec42783          	lw	x15,-20(x8)
+ 1000064:	00279793          	slli	x15,x15,0x2
+ 1000068:	00f707b3          	add	x15,x14,x15
+ 100006c:	0007a023          	sw	x0,0(x15)
+ 1000070:	fe042423          	sw	x0,-24(x8)
+ 1000074:	05c0006f          	j	10000d0 <main+0xd0>
+ 1000078:	00001717          	auipc	x14,0x1
+ 100007c:	10070713          	addi	x14,x14,256 # 1001178 <y>
+ 1000080:	fec42783          	lw	x15,-20(x8)
+ 1000084:	00279793          	slli	x15,x15,0x2
+ 1000088:	00f707b3          	add	x15,x14,x15
+ 100008c:	0007a703          	lw	x14,0(x15)
+ 1000090:	00000697          	auipc	x13,0x0
+ 1000094:	0e868693          	addi	x13,x13,232 # 1000178 <x>
+ 1000098:	fe842783          	lw	x15,-24(x8)
+ 100009c:	00279793          	slli	x15,x15,0x2
+ 10000a0:	00f687b3          	add	x15,x13,x15
+ 10000a4:	0007a783          	lw	x15,0(x15)
+ 10000a8:	00f70733          	add	x14,x14,x15
+ 10000ac:	00001697          	auipc	x13,0x1
+ 10000b0:	0cc68693          	addi	x13,x13,204 # 1001178 <y>
+ 10000b4:	fec42783          	lw	x15,-20(x8)
+ 10000b8:	00279793          	slli	x15,x15,0x2
+ 10000bc:	00f687b3          	add	x15,x13,x15
+ 10000c0:	00e7a023          	sw	x14,0(x15)
+ 10000c4:	fe842783          	lw	x15,-24(x8)
+ 10000c8:	00178793          	addi	x15,x15,1
+ 10000cc:	fef42423          	sw	x15,-24(x8)
+ 10000d0:	fec42703          	lw	x14,-20(x8)
+ 10000d4:	fe842783          	lw	x15,-24(x8)
+ 10000d8:	faf750e3          	bge	x14,x15,1000078 <main+0x78>
+ 10000dc:	fec42783          	lw	x15,-20(x8)
+ 10000e0:	00178793          	addi	x15,x15,1
+ 10000e4:	fef42623          	sw	x15,-20(x8)
+ 10000e8:	fec42703          	lw	x14,-20(x8)
+ 10000ec:	3ff00793          	li	x15,1023
+ 10000f0:	f6e7d4e3          	bge	x15,x14,1000058 <main+0x58>
+ 10000f4:	00001717          	auipc	x14,0x1
+ 10000f8:	08470713          	addi	x14,x14,132 # 1001178 <y>
+ 10000fc:	000017b7          	lui	x15,0x1
+ 1000100:	00f707b3          	add	x15,x14,x15
+ 1000104:	ffc7a783          	lw	x15,-4(x15) # ffc <main-0xfff004>
+ 1000108:	00078713          	mv	x14,x15
+ 100010c:	000807b7          	lui	x15,0x80
+ 1000110:	20078593          	addi	x11,x15,512 # 80200 <main-0xf7fe00>
+ 1000114:	00070513          	mv	x10,x14
+ 1000118:	028000ef          	jal	x1,1000140 <assert_equals>
+ 100011c:	00050793          	mv	x15,x10
+ 1000120:	00078863          	beqz	x15,1000130 <main+0x130>
+ 1000124:	00100793          	li	x15,1
+ 1000128:	51e79073          	csrw	0x51e,x15
+ 100012c:	00c0006f          	j	1000138 <main+0x138>
+ 1000130:	00200793          	li	x15,2
+ 1000134:	51e79073          	csrw	0x51e,x15
+ 1000138:	00000013          	nop
+ 100013c:	ffdff06f          	j	1000138 <main+0x138>
 
-00002008 <main>:
-    2008:	fe010113          	addi	sp,sp,-32 # 7ffe0 <y+0x7ce48>
-    200c:	00112e23          	sw	ra,28(sp)
-    2010:	00812c23          	sw	s0,24(sp)
-    2014:	02010413          	addi	s0,sp,32
-    2018:	fe042623          	sw	zero,-20(s0)
-    201c:	0300006f          	j	204c <main+0x44>
-    2020:	fec42783          	lw	a5,-20(s0)
-    2024:	00178713          	addi	a4,a5,1
-    2028:	00000697          	auipc	a3,0x0
-    202c:	1606a683          	lw	a3,352(a3) # 2188 <_GLOBAL_OFFSET_TABLE_+0x4>
-    2030:	fec42783          	lw	a5,-20(s0)
-    2034:	00279793          	slli	a5,a5,0x2
-    2038:	00f687b3          	add	a5,a3,a5
-    203c:	00e7a023          	sw	a4,0(a5)
-    2040:	fec42783          	lw	a5,-20(s0)
-    2044:	00178793          	addi	a5,a5,1
-    2048:	fef42623          	sw	a5,-20(s0)
-    204c:	fec42703          	lw	a4,-20(s0)
-    2050:	3ff00793          	li	a5,1023
-    2054:	fce7d6e3          	ble	a4,a5,2020 <main+0x18>
-    2058:	fe042623          	sw	zero,-20(s0)
-    205c:	0980006f          	j	20f4 <main+0xec>
-    2060:	00000717          	auipc	a4,0x0
-    2064:	12c72703          	lw	a4,300(a4) # 218c <_GLOBAL_OFFSET_TABLE_+0x8>
-    2068:	fec42783          	lw	a5,-20(s0)
-    206c:	00279793          	slli	a5,a5,0x2
-    2070:	00f707b3          	add	a5,a4,a5
-    2074:	0007a023          	sw	zero,0(a5)
-    2078:	fe042423          	sw	zero,-24(s0)
-    207c:	05c0006f          	j	20d8 <main+0xd0>
-    2080:	00000717          	auipc	a4,0x0
-    2084:	10c72703          	lw	a4,268(a4) # 218c <_GLOBAL_OFFSET_TABLE_+0x8>
-    2088:	fec42783          	lw	a5,-20(s0)
-    208c:	00279793          	slli	a5,a5,0x2
-    2090:	00f707b3          	add	a5,a4,a5
-    2094:	0007a703          	lw	a4,0(a5)
-    2098:	00000697          	auipc	a3,0x0
-    209c:	0f06a683          	lw	a3,240(a3) # 2188 <_GLOBAL_OFFSET_TABLE_+0x4>
-    20a0:	fe842783          	lw	a5,-24(s0)
-    20a4:	00279793          	slli	a5,a5,0x2
-    20a8:	00f687b3          	add	a5,a3,a5
-    20ac:	0007a783          	lw	a5,0(a5)
-    20b0:	00f70733          	add	a4,a4,a5
-    20b4:	00000697          	auipc	a3,0x0
-    20b8:	0d86a683          	lw	a3,216(a3) # 218c <_GLOBAL_OFFSET_TABLE_+0x8>
-    20bc:	fec42783          	lw	a5,-20(s0)
-    20c0:	00279793          	slli	a5,a5,0x2
-    20c4:	00f687b3          	add	a5,a3,a5
-    20c8:	00e7a023          	sw	a4,0(a5)
-    20cc:	fe842783          	lw	a5,-24(s0)
-    20d0:	00178793          	addi	a5,a5,1
-    20d4:	fef42423          	sw	a5,-24(s0)
-    20d8:	fec42783          	lw	a5,-20(s0)
-    20dc:	00178713          	addi	a4,a5,1
-    20e0:	fe842783          	lw	a5,-24(s0)
-    20e4:	f8e7cee3          	blt	a5,a4,2080 <main+0x78>
-    20e8:	fec42783          	lw	a5,-20(s0)
-    20ec:	00178793          	addi	a5,a5,1
-    20f0:	fef42623          	sw	a5,-20(s0)
-    20f4:	fec42703          	lw	a4,-20(s0)
-    20f8:	3ff00793          	li	a5,1023
-    20fc:	f6e7d2e3          	ble	a4,a5,2060 <main+0x58>
-    2100:	00000717          	auipc	a4,0x0
-    2104:	08c72703          	lw	a4,140(a4) # 218c <_GLOBAL_OFFSET_TABLE_+0x8>
-    2108:	000017b7          	lui	a5,0x1
-    210c:	00f707b3          	add	a5,a4,a5
-    2110:	ffc7a783          	lw	a5,-4(a5) # ffc <_start-0x1004>
-    2114:	00078713          	mv	a4,a5
-    2118:	000807b7          	lui	a5,0x80
-    211c:	20078593          	addi	a1,a5,512 # 80200 <y+0x7d068>
-    2120:	00070513          	mv	a0,a4
-    2124:	028000ef          	jal	214c <assert_equals>
-    2128:	00050793          	mv	a5,a0
-    212c:	00078863          	beqz	a5,213c <main+0x134>
-    2130:	00100793          	li	a5,1
-    2134:	51e79073          	csrw	0x51e,a5
-    2138:	00c0006f          	j	2144 <main+0x13c>
-    213c:	00200793          	li	a5,2
-    2140:	51e79073          	csrw	0x51e,a5
-    2144:	00000013          	nop
-    2148:	ffdff06f          	j	2144 <main+0x13c>
-
-0000214c <assert_equals>:
-    214c:	fe010113          	addi	sp,sp,-32
-    2150:	00812e23          	sw	s0,28(sp)
-    2154:	02010413          	addi	s0,sp,32
-    2158:	fea42623          	sw	a0,-20(s0)
-    215c:	feb42423          	sw	a1,-24(s0)
-    2160:	fec42703          	lw	a4,-20(s0)
-    2164:	fe842783          	lw	a5,-24(s0)
-    2168:	40f707b3          	sub	a5,a4,a5
-    216c:	0017b793          	seqz	a5,a5
-    2170:	0ff7f793          	andi	a5,a5,255
-    2174:	00078513          	mv	a0,a5
-    2178:	01c12403          	lw	s0,28(sp)
-    217c:	02010113          	addi	sp,sp,32
-    2180:	00008067          	ret
+01000140 <assert_equals>:
+ 1000140:	fe010113          	addi	x2,x2,-32
+ 1000144:	00812e23          	sw	x8,28(x2)
+ 1000148:	02010413          	addi	x8,x2,32
+ 100014c:	fea42623          	sw	x10,-20(x8)
+ 1000150:	feb42423          	sw	x11,-24(x8)
+ 1000154:	fec42703          	lw	x14,-20(x8)
+ 1000158:	fe842783          	lw	x15,-24(x8)
+ 100015c:	40f707b3          	sub	x15,x14,x15
+ 1000160:	0017b793          	seqz	x15,x15
+ 1000164:	0ff7f793          	andi	x15,x15,255
+ 1000168:	00078513          	mv	x10,x15
+ 100016c:	01c12403          	lw	x8,28(x2)
+ 1000170:	02010113          	addi	x2,x2,32
+ 1000174:	00008067          	ret
 
 Disassembly of section .bss:
 
-00002198 <x>:
+01000178 <x>:
 	...
 
-00003198 <y>:
+01001178 <y>:
 	...
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	3a434347          	fmsub.d	f6,f6,f4,f7,rmm
+   4:	2820                	fld	f8,80(x8)
+   6:	69466953          	0x69466953
+   a:	6576                	flw	f10,92(x2)
+   c:	4720                	lw	x8,72(x14)
+   e:	38204343          	fmadd.s	f6,f0,f2,f7,rmm
+  12:	322e                	fld	f4,232(x2)
+  14:	302e                	fld	f0,232(x2)
+  16:	322d                	jal	fffff940 <y+0xfeffe7c8>
+  18:	3130                	fld	f12,96(x10)
+  1a:	2e39                	jal	338 <main-0xfffcc8>
+  1c:	3530                	fld	f12,104(x10)
+  1e:	332e                	fld	f6,232(x2)
+  20:	2029                	jal	2a <main-0xffffd6>
+  22:	2e38                	fld	f14,88(x12)
+  24:	2e32                	fld	f28,264(x2)
+  26:	0030                	addi	x12,x2,8
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	1941                	addi	x18,x18,-16
+   2:	0000                	unimp
+   4:	7200                	flw	f8,32(x12)
+   6:	7369                	lui	x6,0xffffa
+   8:	01007663          	bgeu	x0,x16,14 <main-0xffffec>
+   c:	0000000f          	fence	unknown,unknown
+  10:	7205                	lui	x4,0xfffe1
+  12:	3376                	fld	f6,376(x2)
+  14:	6932                	flw	f18,12(x2)
+  16:	7032                	flw	f0,44(x2)
+  18:	0030                	addi	x12,x2,8

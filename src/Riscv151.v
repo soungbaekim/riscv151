@@ -22,6 +22,8 @@ localparam integer WIDTH = 32;
 localparam integer LOGDEPTH = 5;
 localparam DEPTH = (1 << LOGDEPTH);
 
+assign dcache_re = 1;
+
 //Program count
 wire [31:0] s1_PC, s1_PCplus4;
 reg [31:0] s0_PC;
@@ -58,7 +60,7 @@ wire [4:0] s3_A0, s1_A1, s1_A2;
 wire [4:0] s1_A0;
 wire RegFile_WE; //from controller
 
-REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) regFile (
+REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) rf (
     .d0(s3_WB), .addr0(s3_A0), .we0(RegFile_WE),
     .q1(s1_reg_SrcA), .addr1(s1_A1),
     .q2(s1_reg_SrcB), .addr2(s1_A2),
@@ -132,6 +134,7 @@ ALU myALU (
 //Store mask
 wire [1:0] st_size;
 reg [31:0] s2_WD;
+/*
 always@(*) begin
 	case(st_size) //2=word, 1=half, 0=byte
 		2'd2: s2_WD = s2_SrcB;
@@ -140,7 +143,28 @@ always@(*) begin
 		default: s2_WD = s2_SrcB; 
 	endcase
 end
+*/
+wire dcache_we_bit; //from controller
+//dcache_we_bit indicates whether a write will take place
+//dcache_we[3:0] indicates which bytes will be written
+//right now assuming that data doesn't write between words in memory
+reg [3:0] dcache_we_mask;
+always@(*) begin
+	case(s2_ALUout[1:0])
+		2'd0: s2_WD = s2_SrcB;
+		2'd1: s2_WD = s2_SrcB << 8;
+		2'd2: s2_WD = s2_SrcB << 16;
+		2'd3: s2_WD = s2_SrcB <<24; 
+	endcase
 
+	case(st_size)
+		`FNC_SB: dcache_we_mask = 4'b0001;
+		`FNC_SH: dcache_we_mask = 4'b0011;
+		`FNC_SW: dcache_we_mask = 4'b1111;
+		default: dcache_we_mask = 4'b0000;
+	endcase
+end
+assign dcache_we = (dcache_we_bit) ? dcache_we_mask : 4'b0000;
 
 //CSR imm zero extend
 wire [31:0] s2_CSR_imm_ext;
@@ -161,7 +185,6 @@ REGISTER_R #(.N(WIDTH)) s23_reg3(.q(s3_PCplus4), .d(s2_PCplus4), .rst(reset), .c
 
 
 //DCache
-//dcache_we and dcache_re coming from controller
 wire [31:0] s3_ReadData;
 assign dcache_addr = s2_ALUout;
 assign dcache_din = s2_WD;
@@ -170,16 +193,34 @@ assign s3_ReadData = dcache_dout;
 
 //Load mask
 wire [2:0] ld_size; //from controller
-reg [31:0] s3_LoadData;
+reg [31:0] s3_LoadData, s3_LoadData_orig;
 always@(*) begin
-	case(ld_size)
-		`FNC_LB: s3_LoadData = {{24{s3_ReadData[7]}},s3_ReadData[7:0]};
-		`FNC_LH: s3_LoadData = {{16{s3_ReadData[15]}},s3_ReadData[15:0]};
-		`FNC_LW: s3_LoadData = s3_ReadData;
-		`FNC_LBU: s3_LoadData = {{24'd0}, s3_ReadData[7:0]};
-		`FNC_LHU: s3_LoadData = {{16'd0}, s3_ReadData[15:0]};
-		default: s3_LoadData = 32'd0; 
+
+	case(s3_ALUout[1:0])
+		2'd0: s3_LoadData_orig = s3_ReadData;
+		2'd1: s3_LoadData_orig = s3_ReadData >> 8;
+		2'd2: s3_LoadData_orig = s3_ReadData >> 16;
+		2'd3: begin
+			if(ld_size==`FNC_LB || ld_size ==`FNC_LBU) begin
+				s3_LoadData_orig = s3_ReadData >> 24;
+			end else begin
+				s3_LoadData_orig = s3_ReadData >> 16;
+			end	 
+		end	
 	endcase
+
+
+	case(ld_size)
+		`FNC_LB: s3_LoadData = {{24{s3_LoadData_orig[7]}},s3_LoadData_orig[7:0]};
+		`FNC_LH: s3_LoadData = {{16{s3_LoadData_orig[15]}},s3_LoadData_orig[15:0]};
+		`FNC_LW: s3_LoadData = s3_LoadData_orig[31:0];
+		`FNC_LBU: s3_LoadData = {{24'd0}, s3_LoadData_orig[7:0]};
+		`FNC_LHU: s3_LoadData = {{16'd0}, s3_LoadData_orig[15:0]};
+		default: s3_LoadData = 32'hbcbbcbbc; 
+	endcase
+
+
+
 end
 
 //CSR
@@ -230,7 +271,7 @@ control myController(
 	.Bypass_Delay_A(bypass_delay_A),
 	.Bypass_Delay_B(bypass_delay_B),
 // Stage M
-	.DCache_WE(dcache_we),
+	.DCache_WE(dcache_we_bit),
 	.RegFile_WE(RegFile_WE),
 	.CSR_we(CSR_we),
 	.WB_Sel(WBSel),
