@@ -123,7 +123,8 @@ module Riscv151_testbench();
             if (cycle == timeout_cycle) begin
                 $display("[Failed] Timeout at [%d] test %s, expected_result = %h, got = %h",
                          current_test_id, current_test_type, current_result, current_output);
-                $finish();
+$vcdplusoff;                
+		$finish();
             end
         end
     end
@@ -204,6 +205,8 @@ module Riscv151_testbench();
     reg [255:0] BR_NAME_NTK   [5:0];
 
     initial begin
+
+$vcdpluson;
         rst = 0;
         stall = 1'b0;
 
@@ -314,7 +317,6 @@ module Riscv151_testbench();
         dmem.mem[DATA_ADDR] = 32'hdeadbeef;
 
         check_result_rf(5'd2,   32'hdeadbeef, "I-Type LW");
-
         check_result_rf(5'd3,   32'hffffbeef, "I-Type LH 0");
         check_result_rf(5'd4,   32'hffffadbe, "I-Type LH 1");
         check_result_rf(5'd5,   32'hffffdead, "I-Type LH 2");
