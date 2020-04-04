@@ -11,7 +11,7 @@ module control(
   input [31:0]      inst,
 
   // Stage I
-  output reg [1:0]  PC_Sel,
+  output [1:0]  PC_Sel,
   output            ICache_RE, // UNUSED?
   output reg [2:0]  ImmSel, // 0 if I type, 1 if S type: 5 types
   output	    Inst_Kill,
@@ -77,7 +77,9 @@ module control(
   wire nop_I, nop_X, nop_M;
   REGISTER_R nop_IX_reg(.q(nop_X), .d(nop_I), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
-  assign Inst_Kill = 1'b0;
+
+  reg inst_kill_next;
+  REGISTER_R inst_kill_reg(.q(Inst_Kill), .d(inst_kill_next), .rst(reset), .clk(clk));
 
   // TODO: Branches
   wire in_b_val;
@@ -91,7 +93,7 @@ module control(
   // Stage X Registers
   reg csr_sel_next, a_sel_next, b_sel_next;
   wire bypass_a_next, bypass_b_next;
-  wire  bypass_delay_next_a, bypass_delay_next_b; 
+  wire  bypass_delay_next_a, bypass_delay_next_b;
   //wire reg bypass_sel_next;
   REGISTER_R #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .clk(clk));
   REGISTER_R csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .clk(clk));
@@ -133,7 +135,7 @@ module control(
   //REGISTER_R regfile_we_reg1(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));s
   REGISTER_R regfile_we_reg2(.q(RegFile_WE), .d(regfile_we_imm1), .rst(reset), .clk(clk));
 
-
+  assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
 
   assign ICache_RE = 1'b1; // ALWAYS ON?
   assign ST_Size = func3_X[1:0];
@@ -155,6 +157,9 @@ module control(
 
 
   always @(*) begin
+    //nops
+    inst_kill_next = 1'b0;
+
     // default is nop
     csr_sel_next = `CSRSEL_IMM;
     csr_we_next = `WRITE_DISABLE;
@@ -178,10 +183,17 @@ module control(
     bypass_b_next = `BYPASS_FALSE;
     bypass_sel_next = `BYPASS_CURR;
     */
+    /*
+    if (Inst_Kill == 1'b1) begin
+      PC_Sel = `PCSEL_ALU;
+    end else begin
+      PC_Sel = `PCSEL_PLUS4;
+    end
+    */
 
     if (will_branch == 1'b1) begin
 
-      PC_Sel = `PCSEL_ALU;
+      //PC_Sel = `PCSEL_ALU;
       ImmSel = `IMMSEL_U;
 
       a_sel_next = `ASEL_REG;
@@ -191,12 +203,14 @@ module control(
       regfile_we_next = `WRITE_DISABLE;
 
       wb_sel_next = `WBSEL_ALU;
+
+
     end
     else begin
 
       case (opcode)
       `OPC_LUI: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_U;
 
         a_sel_next = `ASEL_REG;
@@ -206,9 +220,11 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+
+
       end
       `OPC_AUIPC: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_U;
 
         a_sel_next = `ASEL_PC;
@@ -218,15 +234,42 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+
+
       end
 
       // Jump instructions
-     // `OPC_JAL         7'b1101111
-     // `OPC_JALR        7'b1100111
+     `OPC_JAL: begin
+        ImmSel = `IMMSEL_UJ;
+
+        a_sel_next = `ASEL_PC;
+        b_sel_next = `BSEL_IMM;
+
+        dcache_we_next = `WRITE_DISABLE;
+        regfile_we_next = `WRITE_ENABLE;
+
+        wb_sel_next = `WBSEL_PC4;
+
+        // TODO:nop
+        inst_kill_next = 1'b1;
+      end
+      `OPC_JALR: begin
+        ImmSel = `IMMSEL_I;
+
+        a_sel_next = `ASEL_REG;
+        b_sel_next = `BSEL_IMM;
+
+        dcache_we_next = `WRITE_DISABLE;
+        regfile_we_next = `WRITE_ENABLE;
+
+        wb_sel_next = `WBSEL_PC4;
+        // TODO: nop?
+        inst_kill_next = 1'b1;
+      end
 
       // Branch instructions
       `OPC_BRANCH: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_SB;
 
         a_sel_next = `ASEL_PC;
@@ -237,6 +280,7 @@ module control(
 
         wb_sel_next = `WBSEL_ALU;
 
+
         in_b_next = 1'b1;
         case (func3_X)
           `FNC_BLTU, `FNC_BGEU: BrUn_next = 1'b1;
@@ -246,7 +290,7 @@ module control(
 
       // Load and store instructions
       `OPC_STORE: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_S;
 
         a_sel_next = `ASEL_REG;
@@ -256,9 +300,11 @@ module control(
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
+
+
       end
       `OPC_LOAD: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_I;
 
         a_sel_next = `ASEL_REG;
@@ -268,11 +314,13 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_DATA;
+
+
       end
 
       // Arithmetic instructions
       `OPC_ARI_RTYPE: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_I; //we won't be using this so shouldn't matter
 
         a_sel_next = `ASEL_REG;
@@ -282,9 +330,11 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+
+
       end
       `OPC_ARI_ITYPE: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_I;
 
         a_sel_next = `ASEL_REG;
@@ -294,31 +344,34 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+
+
       end
 
 	//For CSR
       `OPC_SYSTEM: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_U; //doesn't matter
-        a_sel_next = `ASEL_REG; //doesn't matter 
+        a_sel_next = `ASEL_REG; //doesn't matter
         b_sel_next = `BSEL_REG; //doesn't matter
         dcache_we_next = `WRITE_DISABLE;
-        regfile_we_next = `WRITE_DISABLE; 
+        regfile_we_next = `WRITE_DISABLE;
         wb_sel_next = `WBSEL_ALU; //doesn't matter
-     
 
-	csr_we_next = `WRITE_ENABLE; 
-	
-	  if(func3 == `FNC_CSRRW) begin
-		csr_sel_next = `CSRSEL_A;
-	  end else if(func3 == `FNC_CSRRWI) begin
-		csr_sel_next = `CSRSEL_IMM;
-  	  end	
-	end
+
+
+
+	      csr_we_next = `WRITE_ENABLE;
+
+    	  if(func3 == `FNC_CSRRW) begin
+    		  csr_sel_next = `CSRSEL_A;
+	      end else if(func3 == `FNC_CSRRWI) begin
+    		  csr_sel_next = `CSRSEL_IMM;
+      	end
+	     end
 
 
       default: begin
-        PC_Sel = 0;
         ImmSel = 0;
 
         a_sel_next = 0;
