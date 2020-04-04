@@ -151,17 +151,55 @@ wire dcache_we_bit; //from controller
 reg [3:0] dcache_we_mask;
 always@(*) begin
 	case(s2_ALUout[1:0])
-		2'd0: s2_WD = s2_SrcB;
-		2'd1: s2_WD = s2_SrcB << 8;
-		2'd2: s2_WD = s2_SrcB << 16;
-		2'd3: s2_WD = s2_SrcB <<24; 
-	endcase
+		2'd0: begin
+			s2_WD = s2_SrcB;
+			case(st_size)
+				`FNC_SB: dcache_we_mask = 4'b0001;
+				`FNC_SH: dcache_we_mask = 4'b0011;
+				`FNC_SW: dcache_we_mask = 4'b1111;
+				default: dcache_we_mask = 4'b0000;
+			endcase
+		end	
+		2'd1: begin
+			s2_WD=s2_SrcB << 8;
+			case(st_size)
+				`FNC_SB:dcache_we_mask = 4'b0010;
+				`FNC_SH: dcache_we_mask = 4'b0110;
+				`FNC_SW: begin
+					dcache_we_mask = 4'b1111;
+					s2_WD = s2_SrcB;
+				end
+				default: dcache_we_mask = 4'b0000;
+			endcase
+		end	
+		2'd2: begin
+			s2_WD = s2_SrcB<<16;
+			case(st_size)
+				`FNC_SB: dcache_we_mask = 4'b0100;
+				`FNC_SH: dcache_we_mask = 4'b1100;
+				`FNC_SW: begin
+					dcache_we_mask = 4'b1111;
+					s2_WD = s2_SrcB;
+				end
+				default: dcache_we_mask = 4'b0000;
+			endcase
+		end	
 
-	case(st_size)
-		`FNC_SB: dcache_we_mask = 4'b0001;
-		`FNC_SH: dcache_we_mask = 4'b0011;
-		`FNC_SW: dcache_we_mask = 4'b1111;
-		default: dcache_we_mask = 4'b0000;
+		2'd3: begin
+			s2_WD = s2_SrcB<<24;
+			case(st_size)
+				`FNC_SB: dcache_we_mask = 4'b1000;
+				`FNC_SH: begin
+					 dcache_we_mask = 4'b1100;
+					s2_WD=s2_SrcB<<16;
+				end
+				`FNC_SW: begin
+					dcache_we_mask = 4'b1111;
+					s2_WD = s2_SrcB;
+				end	
+				default: dcache_we_mask = 4'b0000;
+			endcase
+		end
 	endcase
 end
 assign dcache_we = (dcache_we_bit) ? dcache_we_mask : 4'b0000;
