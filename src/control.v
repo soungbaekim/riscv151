@@ -135,7 +135,7 @@ module control(
   //REGISTER_R regfile_we_reg1(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));s
   REGISTER_R regfile_we_reg2(.q(RegFile_WE), .d(regfile_we_imm1), .rst(reset), .clk(clk));
 
-
+  assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
 
   assign ICache_RE = 1'b1; // ALWAYS ON?
   assign ST_Size = func3_X[1:0];
@@ -183,11 +183,13 @@ module control(
     bypass_b_next = `BYPASS_FALSE;
     bypass_sel_next = `BYPASS_CURR;
     */
+    /*
     if (Inst_Kill == 1'b1) begin
       PC_Sel = `PCSEL_ALU;
     end else begin
       PC_Sel = `PCSEL_PLUS4;
     end
+    */
 
     if (will_branch == 1'b1) begin
 
@@ -238,7 +240,6 @@ module control(
 
       // Jump instructions
      `OPC_JAL: begin
-        PC_Sel = `PCSEL_ALU;
         ImmSel = `IMMSEL_UJ;
 
         a_sel_next = `ASEL_PC;
@@ -253,7 +254,6 @@ module control(
         inst_kill_next = 1'b1;
       end
       `OPC_JALR: begin
-        PC_Sel = `PCSEL_ALU;
         ImmSel = `IMMSEL_I;
 
         a_sel_next = `ASEL_REG;
@@ -372,7 +372,6 @@ module control(
 
 
       default: begin
-        PC_Sel = 0;
         ImmSel = 0;
 
         a_sel_next = 0;
