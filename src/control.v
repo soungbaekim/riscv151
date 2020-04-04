@@ -183,6 +183,11 @@ module control(
     bypass_b_next = `BYPASS_FALSE;
     bypass_sel_next = `BYPASS_CURR;
     */
+    if (Inst_Kill == 1'b1) begin
+      PC_Sel = `PCSEL_ALU;
+    end else begin
+      PC_Sel = `PCSEL_PLUS4;
+    end
 
     if (will_branch == 1'b1) begin
 
@@ -203,7 +208,7 @@ module control(
 
       case (opcode)
       `OPC_LUI: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_U;
 
         a_sel_next = `ASEL_REG;
@@ -217,7 +222,7 @@ module control(
 
       end
       `OPC_AUIPC: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_U;
 
         a_sel_next = `ASEL_PC;
@@ -264,7 +269,7 @@ module control(
 
       // Branch instructions
       `OPC_BRANCH: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_SB;
 
         a_sel_next = `ASEL_PC;
@@ -285,7 +290,7 @@ module control(
 
       // Load and store instructions
       `OPC_STORE: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_S;
 
         a_sel_next = `ASEL_REG;
@@ -299,7 +304,7 @@ module control(
 
       end
       `OPC_LOAD: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_I;
 
         a_sel_next = `ASEL_REG;
@@ -315,7 +320,7 @@ module control(
 
       // Arithmetic instructions
       `OPC_ARI_RTYPE: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_I; //we won't be using this so shouldn't matter
 
         a_sel_next = `ASEL_REG;
@@ -329,7 +334,7 @@ module control(
 
       end
       `OPC_ARI_ITYPE: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_I;
 
         a_sel_next = `ASEL_REG;
@@ -345,7 +350,7 @@ module control(
 
 	//For CSR
       `OPC_SYSTEM: begin
-        PC_Sel = `PCSEL_PLUS4;
+
         ImmSel = `IMMSEL_U; //doesn't matter
         a_sel_next = `ASEL_REG; //doesn't matter
         b_sel_next = `BSEL_REG; //doesn't matter
@@ -377,10 +382,6 @@ module control(
         regfile_we_next = 0;
 
         wb_sel_next = 0;
-        if (Inst_Kill == 1'b1) begin
-          PC_Sel = `PCSEL_ALU;
-        end
-
       end
 
 
