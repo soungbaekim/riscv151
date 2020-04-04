@@ -77,7 +77,9 @@ module control(
   wire nop_I, nop_X, nop_M;
   REGISTER_R nop_IX_reg(.q(nop_X), .d(nop_I), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
-  assign Inst_Kill = 1'b0;
+
+  wire reg inst_kill_next;
+  REGISTER_R inst_kill_reg(.q(inst_kill), .d(inst_kill_next), .rst(reset), .clk(clk));
 
   // TODO: Branches
   wire in_b_val;
@@ -91,7 +93,7 @@ module control(
   // Stage X Registers
   reg csr_sel_next, a_sel_next, b_sel_next;
   wire bypass_a_next, bypass_b_next;
-  wire  bypass_delay_next_a, bypass_delay_next_b; 
+  wire  bypass_delay_next_a, bypass_delay_next_b;
   //wire reg bypass_sel_next;
   REGISTER_R #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .clk(clk));
   REGISTER_R csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .clk(clk));
@@ -155,6 +157,9 @@ module control(
 
 
   always @(*) begin
+    //nops
+    inst_kill_next = 1'b0;
+
     // default is nop
     csr_sel_next = `CSRSEL_IMM;
     csr_we_next = `WRITE_DISABLE;
@@ -234,6 +239,7 @@ module control(
         wb_sel_next = `WBSEL_ALU;
 
         // TODO:nop
+        inst_kill_next = 1'b1;
       end
       `OPC_JALR: begin
         PC_Sel = `PCSEL_ALU;
@@ -247,7 +253,7 @@ module control(
 
         wb_sel_next = `WBSEL_ALU;
         // TODO: nop?
-
+        inst_kill_next = 1'b1;
       end
 
       // Branch instructions
@@ -326,20 +332,20 @@ module control(
       `OPC_SYSTEM: begin
         PC_Sel = `PCSEL_PLUS4;
         ImmSel = `IMMSEL_U; //doesn't matter
-        a_sel_next = `ASEL_REG; //doesn't matter 
+        a_sel_next = `ASEL_REG; //doesn't matter
         b_sel_next = `BSEL_REG; //doesn't matter
         dcache_we_next = `WRITE_DISABLE;
-        regfile_we_next = `WRITE_DISABLE; 
+        regfile_we_next = `WRITE_DISABLE;
         wb_sel_next = `WBSEL_ALU; //doesn't matter
-     
 
-	csr_we_next = `WRITE_ENABLE; 
-	
+
+	csr_we_next = `WRITE_ENABLE;
+
 	  if(func3 == `FNC_CSRRW) begin
 		csr_sel_next = `CSRSEL_A;
 	  end else if(func3 == `FNC_CSRRWI) begin
 		csr_sel_next = `CSRSEL_IMM;
-  	  end	
+  	  end
 	end
 
 
