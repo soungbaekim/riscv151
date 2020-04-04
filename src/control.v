@@ -11,7 +11,7 @@ module control(
   input [31:0]      inst,
 
   // Stage I
-  output reg [1:0]  PC_Sel,
+  output [1:0]  PC_Sel,
   output            ICache_RE, // UNUSED?
   output reg [2:0]  ImmSel, // 0 if I type, 1 if S type: 5 types
   output	    Inst_Kill,
@@ -193,7 +193,7 @@ module control(
 
     if (will_branch == 1'b1) begin
 
-      PC_Sel = `PCSEL_ALU;
+      //PC_Sel = `PCSEL_ALU;
       ImmSel = `IMMSEL_U;
 
       a_sel_next = `ASEL_REG;
