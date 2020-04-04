@@ -221,8 +221,34 @@ module control(
       end
 
       // Jump instructions
-     // `OPC_JAL         7'b1101111
-     // `OPC_JALR        7'b1100111
+     `OPC_JAL: begin
+        PC_Sel = `PCSEL_ALU;
+        ImmSel = `IMMSEL_UJ;
+
+        a_sel_next = `ASEL_PC;
+        b_sel_next = `BSEL_IMM;
+
+        dcache_we_next = `WRITE_DISABLE;
+        regfile_we_next = `WRITE_ENABLE;
+
+        wb_sel_next = `WBSEL_ALU;
+
+        // TODO:nop
+      end
+      `OPC_JALR: begin
+        PC_Sel = `PCSEL_ALU;
+        ImmSel = `IMMSEL_I;
+
+        a_sel_next = `ASEL_REG;
+        b_sel_next = `BSEL_IMM;
+
+        dcache_we_next = `WRITE_DISABLE;
+        regfile_we_next = `WRITE_ENABLE;
+
+        wb_sel_next = `WBSEL_ALU;
+        // TODO: nop?
+
+      end
 
       // Branch instructions
       `OPC_BRANCH: begin
