@@ -158,7 +158,8 @@ module control(
 
   always @(*) begin
     //nops
-
+    inst_kill_next = 1'b0;
+    
     // default is nop
     csr_sel_next = `CSRSEL_IMM;
     csr_we_next = `WRITE_DISABLE;
@@ -195,7 +196,7 @@ module control(
       regfile_we_next = `WRITE_DISABLE;
 
       wb_sel_next = `WBSEL_ALU;
-      inst_kill_next = 1'b0;
+
 
     end
     else begin
@@ -212,7 +213,7 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
-        inst_kill_next = 1'b0;
+
 
       end
       `OPC_AUIPC: begin
@@ -226,7 +227,7 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
-        inst_kill_next = 1'b0;
+
 
       end
 
@@ -273,7 +274,7 @@ module control(
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
-        inst_kill_next = 1'b0;
+
 
         in_b_next = 1'b1;
         case (func3_X)
@@ -294,7 +295,7 @@ module control(
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
-        inst_kill_next = 1'b0;
+
 
       end
       `OPC_LOAD: begin
@@ -308,7 +309,7 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_DATA;
-        inst_kill_next = 1'b0;
+
 
       end
 
@@ -324,7 +325,7 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
-        inst_kill_next = 1'b0;
+
 
       end
       `OPC_ARI_ITYPE: begin
@@ -338,7 +339,7 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
-        inst_kill_next = 1'b0;
+
 
       end
 
@@ -351,7 +352,7 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_DISABLE;
         wb_sel_next = `WBSEL_ALU; //doesn't matter
-        inst_kill_next = 1'b0;
+
 
 
 
@@ -376,7 +377,7 @@ module control(
         regfile_we_next = 0;
 
         wb_sel_next = 0;
-        inst_kill_next = 1'b0;
+
       end
 
 
