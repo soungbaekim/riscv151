@@ -159,7 +159,7 @@ module control(
   always @(*) begin
     //nops
     inst_kill_next = 1'b0;
-    
+
     // default is nop
     csr_sel_next = `CSRSEL_IMM;
     csr_we_next = `WRITE_DISABLE;
@@ -377,6 +377,9 @@ module control(
         regfile_we_next = 0;
 
         wb_sel_next = 0;
+        if (Inst_Kill == 1'b1) begin
+          PC_Sel = `PCSEL_ALU;
+        end
 
       end
 
