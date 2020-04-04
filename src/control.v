@@ -78,7 +78,7 @@ module control(
   REGISTER_R nop_IX_reg(.q(nop_X), .d(nop_I), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
 
-  wire reg inst_kill_next;
+  reg inst_kill_next;
   REGISTER_R inst_kill_reg(.q(inst_kill), .d(inst_kill_next), .rst(reset), .clk(clk));
 
   // TODO: Branches
