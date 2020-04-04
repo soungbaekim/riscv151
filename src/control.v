@@ -248,7 +248,7 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_ENABLE;
 
-        wb_sel_next = `WBSEL_ALU;
+        wb_sel_next = `WBSEL_PC4;
 
         // TODO:nop
         inst_kill_next = 1'b1;
@@ -262,7 +262,7 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_ENABLE;
 
-        wb_sel_next = `WBSEL_ALU;
+        wb_sel_next = `WBSEL_PC4;
         // TODO: nop?
         inst_kill_next = 1'b1;
       end
