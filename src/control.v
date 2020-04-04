@@ -158,7 +158,6 @@ module control(
 
   always @(*) begin
     //nops
-    inst_kill_next = 1'b0;
 
     // default is nop
     csr_sel_next = `CSRSEL_IMM;
@@ -196,6 +195,8 @@ module control(
       regfile_we_next = `WRITE_DISABLE;
 
       wb_sel_next = `WBSEL_ALU;
+      inst_kill_next = 1'b0;
+
     end
     else begin
 
@@ -211,6 +212,8 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+        inst_kill_next = 1'b0;
+
       end
       `OPC_AUIPC: begin
         PC_Sel = `PCSEL_PLUS4;
@@ -223,6 +226,8 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+        inst_kill_next = 1'b0;
+
       end
 
       // Jump instructions
@@ -268,6 +273,7 @@ module control(
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
+        inst_kill_next = 1'b0;
 
         in_b_next = 1'b1;
         case (func3_X)
@@ -288,6 +294,8 @@ module control(
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
+        inst_kill_next = 1'b0;
+
       end
       `OPC_LOAD: begin
         PC_Sel = `PCSEL_PLUS4;
@@ -300,6 +308,8 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_DATA;
+        inst_kill_next = 1'b0;
+
       end
 
       // Arithmetic instructions
@@ -314,6 +324,8 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+        inst_kill_next = 1'b0;
+
       end
       `OPC_ARI_ITYPE: begin
         PC_Sel = `PCSEL_PLUS4;
@@ -326,6 +338,8 @@ module control(
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
+        inst_kill_next = 1'b0;
+
       end
 
 	//For CSR
@@ -337,16 +351,18 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_DISABLE;
         wb_sel_next = `WBSEL_ALU; //doesn't matter
+        inst_kill_next = 1'b0;
 
 
-	csr_we_next = `WRITE_ENABLE;
 
-	  if(func3 == `FNC_CSRRW) begin
-		csr_sel_next = `CSRSEL_A;
-	  end else if(func3 == `FNC_CSRRWI) begin
-		csr_sel_next = `CSRSEL_IMM;
-  	  end
-	end
+	      csr_we_next = `WRITE_ENABLE;
+
+    	  if(func3 == `FNC_CSRRW) begin
+    		  csr_sel_next = `CSRSEL_A;
+	      end else if(func3 == `FNC_CSRRWI) begin
+    		  csr_sel_next = `CSRSEL_IMM;
+      	end
+	     end
 
 
       default: begin
@@ -360,6 +376,7 @@ module control(
         regfile_we_next = 0;
 
         wb_sel_next = 0;
+        inst_kill_next = 1'b0;
       end
 
 
