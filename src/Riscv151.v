@@ -150,19 +150,23 @@ wire dcache_we_bit; //from controller
 //right now assuming that data doesn't write between words in memory
 reg [3:0] dcache_we_mask;
 always@(*) begin
-	case(s2_ALUout[1:0])
+/*	case(s2_ALUout[1:0])
 		2'd0: s2_WD = s2_SrcB;
 		2'd1: s2_WD = s2_SrcB << 8;
 		2'd2: s2_WD = s2_SrcB << 16;
 		2'd3: s2_WD = s2_SrcB <<24; 
 	endcase
-
+*/
+	s2_WD = 32'b0;
+/*
 	case(st_size)
 		`FNC_SB: dcache_we_mask = 4'b0001;
 		`FNC_SH: dcache_we_mask = 4'b0011;
 		`FNC_SW: dcache_we_mask = 4'b1111;
 		default: dcache_we_mask = 4'b0000;
 	endcase
+*/
+	dcache_we_mask = 4'b0000;
 end
 assign dcache_we = (dcache_we_bit) ? dcache_we_mask : 4'b0000;
 
