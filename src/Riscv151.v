@@ -134,16 +134,6 @@ ALU myALU (
 //Store mask
 wire [1:0] st_size;
 reg [31:0] s2_WD;
-/*
-always@(*) begin
-	case(st_size) //2=word, 1=half, 0=byte
-		2'd2: s2_WD = s2_SrcB;
-		2'd1: s2_WD = {{16{s2_SrcB[15]}},s2_SrcB[15:0]};
-		2'd0: s2_WD = {{24{s2_SrcB[7]}},s2_SrcB[7:0]};
-		default: s2_WD = s2_SrcB; 
-	endcase
-end
-*/
 wire dcache_we_bit; //from controller
 //dcache_we_bit indicates whether a write will take place
 //dcache_we[3:0] indicates which bytes will be written
