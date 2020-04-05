@@ -79,7 +79,9 @@ module control(
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
 
   reg inst_kill_next;
-  REGISTER_R inst_kill_reg(.q(Inst_Kill), .d(inst_kill_next), .rst(reset), .clk(clk));
+  wire inst_kill_value;
+  REGISTER_R inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .rst(reset), .clk(clk));
+  assign Inst_Kill = inst_kill_value || will_branch;
 
   // TODO: Branches
   wire in_b_val;
