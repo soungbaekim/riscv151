@@ -81,7 +81,6 @@ module control(
   reg inst_kill_next;
   wire inst_kill_value;
   REGISTER_R inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .rst(reset), .clk(clk));
-  assign Inst_Kill = inst_kill_value || will_branch;
 
   // TODO: Branches
   wire in_b_val;
@@ -138,6 +137,7 @@ module control(
   REGISTER_R regfile_we_reg2(.q(RegFile_WE), .d(regfile_we_imm1), .rst(reset), .clk(clk));
 
   assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
+  assign Inst_Kill = inst_kill_value || will_branch;
 
   assign ICache_RE = 1'b1; // ALWAYS ON?
   assign ST_Size = func3_X[1:0];
