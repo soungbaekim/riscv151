@@ -78,6 +78,8 @@ module control(
   REGISTER_R nop_IX_reg(.q(nop_X), .d(nop_I), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
 
+  assign nop_I = Inst_Kill;
+
   reg inst_kill_next;
   wire inst_kill_value;
   REGISTER_R inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .rst(reset), .clk(clk));
@@ -114,9 +116,10 @@ module control(
 
   // Stage M registers
   reg  dcache_we_next;   /* See Notes below */
-  //wire dcache_we_imm;
+  wire dcache_we_value;
   //REGISTER_R dcache_we_reg1(.q(dcache_we_imm), .d(dcache_we_next), .rst(reset), .clk(clk));
-  REGISTER_R #(.N(1)) dcache_we_reg2(.q(DCache_WE), .d(dcache_we_next), .rst(reset), .clk(clk));
+  REGISTER_R #(.N(1)) dcache_we_reg2(.q(dcache_we_value), .d(dcache_we_next), .rst(reset), .clk(clk));
+  assign DCache_WE = dcache_we_value || ~nop_X;
 
   reg csr_we_next;
   wire csr_we_imm;
@@ -130,11 +133,12 @@ module control(
 
   reg regfile_we_next; /* See Notes below */
   wire regfile_we_imm1;
-  //wire regfile_we_imm2;
+  wire regfile_we_imm2;
   // Another register for delay since technically the one after?
   REGISTER_R regfile_we_reg1(.q(regfile_we_imm1), .d(regfile_we_next), .rst(reset), .clk(clk));
   //REGISTER_R regfile_we_reg1(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));s
-  REGISTER_R regfile_we_reg2(.q(RegFile_WE), .d(regfile_we_imm1), .rst(reset), .clk(clk));
+  REGISTER_R regfile_we_reg2(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));
+  assign RegFile_WE = regfile_we_imm2 || ~nop_M;
 
   assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
   assign Inst_Kill = inst_kill_value || will_branch;
