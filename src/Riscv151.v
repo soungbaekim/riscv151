@@ -22,6 +22,7 @@ localparam integer WIDTH = 32;
 localparam integer LOGDEPTH = 5;
 localparam DEPTH = (1 << LOGDEPTH);
 
+//This will need to be changed
 assign dcache_re = 1'b1;
 
 //Program count
@@ -47,8 +48,6 @@ assign icache_addr = s0_PC;
 assign s1_inst_read = icache_dout;
 
 //Kill inst mux
-wire [31:0] No_OP;
-assign No_OP = 32'b000000000000_00000_000_00000_0010011; //not sure this is the best way to write this
 wire [31:0] s1_inst;
 wire inst_kill; //from controller
 assign s1_inst = (inst_kill) ? `INSTR_NOP : s1_inst_read;
@@ -73,13 +72,9 @@ assign s1_A1 = s1_inst[19:15];
 assign s1_A2 = s1_inst[24:20];
 assign s1_CSR_imm = s1_inst[19:15];
 
-
 //Immediate generator
 wire [2:0] ImmSel; //from controller, 5 options
-//wire [4:0] imm_low5bits;
 reg [31:0] s1_imm;
-//assign imm_low5bits = (ImmSel) ? s1_inst[11:7] : s1_inst[24:20];
-//assign s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],imm_low5bits};
 always@(*) begin
 	case(ImmSel)
 		`IMMSEL_I: s1_imm = {{21{s1_inst[31]}},s1_inst[30:25],s1_inst[24:20]};
@@ -134,24 +129,9 @@ ALU myALU (
 //Store mask
 wire [1:0] st_size;
 reg [31:0] s2_WD;
-//<<<<<<< HEAD
-//=======
-/*
-always@(*) begin
-	case(st_size) //2=word, 1=half, 0=byte
-		2'd2: s2_WD = s2_SrcB;
-		2'd1: s2_WD = {{16{s2_SrcB[15]}},s2_SrcB[15:0]};
-		2'd0: s2_WD = {{24{s2_SrcB[7]}},s2_SrcB[7:0]};
-		default: s2_WD = s2_SrcB;
-	endcase
-end
-*/
-//>>>>>>> a7fbf813c90c653ca92b84fa3a9a5b3819dc143f
-
 wire dcache_we_bit; //from controller
 //dcache_we_bit indicates whether a write will take place
 //dcache_we[3:0] indicates which bytes will be written
-//right now assuming that data doesn't write between words in memory
 reg [3:0] dcache_we_mask;
 always@(*) begin
 	case(s2_ALUout[1:0])
@@ -208,6 +188,7 @@ always@(*) begin
 end
 assign dcache_we = (dcache_we_bit) ? dcache_we_mask : 4'b0000;
 
+
 //CSR imm zero extend
 wire [31:0] s2_CSR_imm_ext;
 assign s2_CSR_imm_ext = {{27'd0},s2_CSR_imm};
@@ -237,7 +218,6 @@ assign s3_ReadData = dcache_dout;
 wire [2:0] ld_size; //from controller
 reg [31:0] s3_LoadData, s3_LoadData_orig;
 always@(*) begin
-
 	case(s3_ALUout[1:0])
 		2'd0: s3_LoadData_orig = s3_ReadData;
 		2'd1: s3_LoadData_orig = s3_ReadData >> 8;
@@ -251,7 +231,6 @@ always@(*) begin
 		end
 	endcase
 
-
 	case(ld_size)
 		`FNC_LB: s3_LoadData = {{24{s3_LoadData_orig[7]}},s3_LoadData_orig[7:0]};
 		`FNC_LH: s3_LoadData = {{16{s3_LoadData_orig[15]}},s3_LoadData_orig[15:0]};
@@ -260,10 +239,8 @@ always@(*) begin
 		`FNC_LHU: s3_LoadData = {{16'd0}, s3_LoadData_orig[15:0]};
 		default: s3_LoadData = 32'hbcbbcbbc;
 	endcase
-
-
-
 end
+
 
 //CSR
 wire CSR_we; //from controller
@@ -298,7 +275,7 @@ control myController(
  // Stage I
 	.PC_Sel(PCsel),
  	.ICache_RE(icache_re),
-	.ImmSel(ImmSel), // 0 if I type, 1 if S type: 5 types
+	.ImmSel(ImmSel),
 	.Inst_Kill(inst_kill),
 //Stage X
 	.BrEq(BrEq), .BrLT(BrLT),
@@ -319,13 +296,5 @@ control myController(
 	.WB_Sel(WBSel),
 	.LD_Size(ld_size)
 );
-
-
-
-
-
-
-
-
 
 endmodule
