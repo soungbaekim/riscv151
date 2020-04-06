@@ -236,7 +236,7 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_ENABLE;
 
-        wb_sel_next = `WBSEL_ALU;
+        wb_sel_next = `WBSEL_PC4;
 
 
       end
@@ -351,7 +351,7 @@ module control(
 
       end
 
-	//For CSR
+	    //For CSR
       `OPC_SYSTEM: begin
 
         ImmSel = `IMMSEL_U; //doesn't matter
