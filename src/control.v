@@ -79,7 +79,8 @@ module control(
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
 
   reg inst_kill_next;
-  REGISTER_R inst_kill_reg(.q(Inst_Kill), .d(inst_kill_next), .rst(reset), .clk(clk));
+  wire inst_kill_value;
+  REGISTER_R inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .rst(reset), .clk(clk));
 
   // TODO: Branches
   wire in_b_val;
@@ -136,6 +137,7 @@ module control(
   REGISTER_R regfile_we_reg2(.q(RegFile_WE), .d(regfile_we_imm1), .rst(reset), .clk(clk));
 
   assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
+  assign Inst_Kill = inst_kill_value || will_branch;
 
   assign ICache_RE = 1'b1; // ALWAYS ON?
   assign ST_Size = func3_X[1:0];
@@ -282,7 +284,7 @@ module control(
 
 
         in_b_next = 1'b1;
-        case (func3_X)
+        case (func3)
           `FNC_BLTU, `FNC_BGEU: BrUn_next = 1'b1;
           default: BrUn_next = 1'b0;
         endcase

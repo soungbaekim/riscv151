@@ -39,7 +39,7 @@ always@(*) begin
 		default: s0_PC = s1_PCplus4;
 	endcase
 end
-	
+
 //ICache
 wire [31:0] s1_inst_read;
 //icache_re comes from controller
@@ -115,7 +115,7 @@ assign s2_SrcB= (bypass_B) ? s2_bypass_value_B : s2_reg_SrcB;
 wire BrEq, BrLT; //to controller
 wire BrUn; //from controller
 assign BrEq = (s2_SrcA==s2_SrcB) ? 1'b1 : 1'b0;
-assign BrLT = ((BrUn==0 && s2_SrcA<s2_SrcB) || (BrUn==1 && $signed(s2_SrcA)<$signed(s2_SrcB))) ? 1'b1 : 1'b0;
+assign BrLT = ((BrUn==1 && s2_SrcA<s2_SrcB) || (BrUn==0 && $signed(s2_SrcA)<$signed(s2_SrcB))) ? 1'b1 : 1'b0;
 
 
 //input MUXes to ALU
@@ -134,6 +134,20 @@ ALU myALU (
 //Store mask
 wire [1:0] st_size;
 reg [31:0] s2_WD;
+//<<<<<<< HEAD
+//=======
+/*
+always@(*) begin
+	case(st_size) //2=word, 1=half, 0=byte
+		2'd2: s2_WD = s2_SrcB;
+		2'd1: s2_WD = {{16{s2_SrcB[15]}},s2_SrcB[15:0]};
+		2'd0: s2_WD = {{24{s2_SrcB[7]}},s2_SrcB[7:0]};
+		default: s2_WD = s2_SrcB;
+	endcase
+end
+*/
+//>>>>>>> a7fbf813c90c653ca92b84fa3a9a5b3819dc143f
+
 wire dcache_we_bit; //from controller
 //dcache_we_bit indicates whether a write will take place
 //dcache_we[3:0] indicates which bytes will be written
@@ -149,7 +163,7 @@ always@(*) begin
 				`FNC_SW: dcache_we_mask = 4'b1111;
 				default: dcache_we_mask = 4'b0000;
 			endcase
-		end	
+		end
 		2'd1: begin
 			s2_WD=s2_SrcB << 8;
 			case(st_size)
@@ -161,7 +175,7 @@ always@(*) begin
 				end
 				default: dcache_we_mask = 4'b0000;
 			endcase
-		end	
+		end
 		2'd2: begin
 			s2_WD = s2_SrcB<<16;
 			case(st_size)
@@ -173,7 +187,7 @@ always@(*) begin
 				end
 				default: dcache_we_mask = 4'b0000;
 			endcase
-		end	
+		end
 
 		2'd3: begin
 			s2_WD = s2_SrcB<<24;
@@ -186,7 +200,7 @@ always@(*) begin
 				`FNC_SW: begin
 					dcache_we_mask = 4'b1111;
 					s2_WD = s2_SrcB;
-				end	
+				end
 				default: dcache_we_mask = 4'b0000;
 			endcase
 		end
@@ -209,7 +223,7 @@ wire [31:0] s3_ALUout, s3_CSR_WD, s3_PCplus4;
 REGISTER_R #(.N(WIDTH)) s23_reg0(.q(s3_ALUout), .d(s2_ALUout), .rst(reset), .clk(clk));
 REGISTER_R #(.N(WIDTH)) s23_reg1(.q(s3_CSR_WD), .d(s2_CSR_WD), .rst(reset), .clk(clk));
 REGISTER_R #(.N(5)) s23_reg2(.q(s3_A0), .d(s2_A0), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s23_reg3(.q(s3_PCplus4), .d(s2_PCplus4), .rst(reset), .clk(clk)); 
+REGISTER_R #(.N(WIDTH)) s23_reg3(.q(s3_PCplus4), .d(s2_PCplus4), .rst(reset), .clk(clk));
 
 
 //DCache
@@ -233,8 +247,8 @@ always@(*) begin
 				s3_LoadData_orig = s3_ReadData >> 24;
 			end else begin
 				s3_LoadData_orig = s3_ReadData >> 16;
-			end	 
-		end	
+			end
+		end
 	endcase
 
 
@@ -244,7 +258,7 @@ always@(*) begin
 		`FNC_LW: s3_LoadData = s3_LoadData_orig[31:0];
 		`FNC_LBU: s3_LoadData = {{24'd0}, s3_LoadData_orig[7:0]};
 		`FNC_LHU: s3_LoadData = {{16'd0}, s3_LoadData_orig[15:0]};
-		default: s3_LoadData = 32'hbcbbcbbc; 
+		default: s3_LoadData = 32'hbcbbcbbc;
 	endcase
 
 
@@ -255,7 +269,7 @@ end
 wire CSR_we; //from controller
 REGISTER_R_CE #(.N(WIDTH)) csr_reg(.q(csr), .d(s3_CSR_WD), .rst(reset), .ce(CSR_we), .clk(clk));
 
- 
+
 //WB mux
 wire [1:0] WBSel; //from controller
 always@(*) begin
@@ -271,16 +285,16 @@ end
 //Bypass
 wire [31:0] s3_WB_delay;
 wire bypass_delay_A, bypass_delay_B; //from controller
-REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .clk(clk)); 
+REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .clk(clk));
 assign s2_bypass_value_A = (bypass_delay_A) ? s3_WB_delay : s3_WB;
 assign s2_bypass_value_B = (bypass_delay_B) ? s3_WB_delay : s3_WB;
-		
+
 
 //Controller
 control myController(
 	.clk(clk),
 	.reset(reset),
-	.inst(s1_inst),
+	.inst(s1_inst_read),
  // Stage I
 	.PC_Sel(PCsel),
  	.ICache_RE(icache_re),
@@ -305,7 +319,7 @@ control myController(
 	.WB_Sel(WBSel),
 	.LD_Size(ld_size)
 );
- 
+
 
 
 
