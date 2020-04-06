@@ -183,8 +183,9 @@ module control(
         `FNC_BGE, `FNC_BGEU: will_branch = ((BrEq == 1'b1) || (BrLT == 1'b0)) ? 1'b1 : 1'b0;
       endcase
     end
-    else
+    else begin
       will_branch = 1'b0;
+    end
 
     /*
     bypass_a_next = `BYPASS_FALSE;
