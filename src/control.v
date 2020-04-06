@@ -78,7 +78,7 @@ module control(
   REGISTER_R nop_IX_reg(.q(nop_X), .d(nop_I), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
 
-  assign nop_I = (Inst_Kill || (rd == 5'd0)) ? 1'b1 : 1'b0;
+  assign nop_I = (Inst_Kill == 1'b1 || (rd == 5'd0)) ? 1'b1 : 1'b0;
 
   reg inst_kill_next;
   wire inst_kill_value;
