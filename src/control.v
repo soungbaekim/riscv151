@@ -261,7 +261,7 @@ module control(
         wb_sel_next = `WBSEL_PC4;
 
         // TODO:nop
-        inst_kill_next = 1'b1;
+        inst_kill_next = ~Inst_Kill;
       end
       `OPC_JALR: begin
         ImmSel = `IMMSEL_I;
