@@ -291,7 +291,7 @@ module control(
         wb_sel_next = `WBSEL_ALU;
 
 
-        in_b_next = 1'b1;
+        in_b_next = 1'b1 & ~Inst_Kill;
         case (func3)
           `FNC_BLTU, `FNC_BGEU: BrUn_next = 1'b1;
           default: BrUn_next = 1'b0;
