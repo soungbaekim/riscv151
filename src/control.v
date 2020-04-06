@@ -123,8 +123,10 @@ module control(
 
   reg csr_we_next;
   wire csr_we_imm;
+  wire csr_we_imm2;
   REGISTER_R csr_we_reg1(.q(csr_we_imm), .d(csr_we_next), .rst(reset), .clk(clk));
-  REGISTER_R csr_we_reg2(.q(CSR_we), .d(csr_we_imm), .rst(reset), .clk(clk));
+  REGISTER_R csr_we_reg2(.q(csr_we_imm2), .d(csr_we_imm), .rst(reset), .clk(clk));
+  assign CSR_we = csr_we_imm2 && ~nop_M;
 
   reg [1:0] wb_sel_next;
   wire [1:0] wb_sel_imm;
