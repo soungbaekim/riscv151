@@ -153,8 +153,8 @@ module control(
   assign bypass_a_next = ((regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) || (RegFile_WE && (rs1 == rd_M))) ? `BYPASS_TRUE : `BYPASS_FALSE;
   assign bypass_b_next = ((regfile_we_imm1 && (rs2 == rd_X) && ~nop_X) || (RegFile_WE && (rs2 == rd_M))) ? `BYPASS_TRUE : `BYPASS_FALSE;
 //  assign bypass_sel_next = ((rs1 == rd_X) || (rs2 == rd_X)) ? `BYPASS_CURR : `BYPASS_DELAY;
-  assign bypass_delay_next_a = (rs1 == rd_X) ? `BYPASS_CURR : `BYPASS_DELAY;
-  assign bypass_delay_next_b = (rs2 == rd_X) ? `BYPASS_CURR : `BYPASS_DELAY;
+  assign bypass_delay_next_a = (regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) ? `BYPASS_CURR : `BYPASS_DELAY;
+  assign bypass_delay_next_b = (regfile_we_imm1 && (rs2 == rd_X) && ~nop_X)  ? `BYPASS_CURR : `BYPASS_DELAY;
 
 
 //braeden's version (bad)
