@@ -22,7 +22,7 @@ localparam integer WIDTH = 32;
 localparam integer LOGDEPTH = 5;
 localparam DEPTH = (1 << LOGDEPTH);
 
-assign dcache_re = 1;
+assign dcache_re = 1'b1;
 
 //Program count
 wire [31:0] s1_PC, s1_PCplus4;

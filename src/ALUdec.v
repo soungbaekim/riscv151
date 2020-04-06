@@ -34,17 +34,12 @@ always@(*) begin
 				`FNC_SB: ALUop=`ALU_ADD;
 				`FNC_SH: ALUop=`ALU_ADD;
 				`FNC_SW: ALUop=`ALU_ADD;
-//				default: ALUop=`ALU_XXX;
-//			endcase
-//		end
-//		`OPC_LOAD: begin
-//			case(funct) //not sure about any of these
 				`FNC_LB: ALUop=`ALU_ADD;
 				`FNC_LH: ALUop=`ALU_ADD;
 				`FNC_LW: ALUop=`ALU_ADD;
 				`FNC_LBU: ALUop=`ALU_ADD;
 				`FNC_LHU: ALUop = `ALU_ADD;
-				default: ALUop=`ALU_ADD; //`ALU_XXX;
+				default: ALUop=`ALU_ADD;
 			endcase
 		end 
 		//arithmetic
