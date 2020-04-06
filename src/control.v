@@ -13,21 +13,18 @@ module control(
   // Stage I
   output [1:0]  PC_Sel,
   output            ICache_RE, // UNUSED?
-  output reg [2:0]  ImmSel, // 0 if I type, 1 if S type: 5 types
+  output reg [2:0]  ImmSel,
   output	    Inst_Kill,
 
   // Stage X
   input             BrEq, BrLT,
   output            BrUn,
-
   output [3:0]      ALUop,
   output            A_Sel, B_Sel,
   output            CSR_Sel,
-  output [1:0]      ST_Size, // 3 types
-
+  output [1:0]      ST_Size,
   output            Bypass_A,
   output            Bypass_B,
- // output            Bypass_Sel,
   output 	    Bypass_Delay_A,
   output 	    Bypass_Delay_B,
 
@@ -38,6 +35,7 @@ module control(
   output [1:0]      WB_Sel,
   output [2:0]      LD_Size
 );
+
   localparam WIDTH = 32;
   localparam ALU_WIDTH = 4;
 
@@ -78,17 +76,14 @@ module control(
   REGISTER_R nop_IX_reg(.q(nop_X), .d(Inst_Kill), .rst(reset), .clk(clk));
   REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
 
-  //assign nop_I = (Inst_Kill == 1'b1 || (rd == 5'd0)) ? 1'b1 : 1'b0;
-
   reg inst_kill_next;
   wire inst_kill_value;
   REGISTER_R inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .rst(reset), .clk(clk));
 
-  // TODO: Branches
+  // Branches
   wire in_b_val;
   reg in_b_next, will_branch;
   REGISTER_R is_b_reg (.q(in_b_val), .d(in_b_next), .rst(reset), .clk(clk));
-
   reg BrUn_next;
   REGISTER_R br_un_reg (.q(BrUn), .d(BrUn_next), .rst(reset), .clk(clk));
 
@@ -97,27 +92,23 @@ module control(
   reg csr_sel_next, a_sel_next, b_sel_next;
   wire bypass_a_next, bypass_b_next;
   wire  bypass_delay_next_a, bypass_delay_next_b;
-  //wire reg bypass_sel_next;
   REGISTER_R #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .clk(clk));
   REGISTER_R csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .clk(clk));
 
 
-
-
+ // Bypass registers
   REGISTER_R bypass_a_reg(.q(Bypass_A), .d(bypass_a_next), .rst(reset), .clk(clk));
   REGISTER_R bypass_b_reg(.q(Bypass_B), .d(bypass_b_next), .rst(reset), .clk(clk));
- // REGISTER_R bypass_sel_reg(.q(Bypass_Sel), .d(bypass_sel_next), .rst(reset), .clk(clk));
   REGISTER_R bypass_delay_reg_a(.q(Bypass_Delay_A), .d(bypass_delay_next_a), .rst(reset), .clk(clk));
   REGISTER_R bypass_delay_reg_b(.q(Bypass_Delay_B), .d(bypass_delay_next_b), .rst(reset), .clk(clk));
 
-
+ //A/B select registers
   REGISTER_R a_sel_reg(.q(A_Sel), .d(a_sel_next), .rst(reset), .clk(clk));
   REGISTER_R b_sel_reg(.q(B_Sel), .d(b_sel_next), .rst(reset), .clk(clk));
 
   // Stage M registers
   reg  dcache_we_next;   /* See Notes below */
   wire dcache_we_value;
-  //REGISTER_R dcache_we_reg1(.q(dcache_we_imm), .d(dcache_we_next), .rst(reset), .clk(clk));
   REGISTER_R #(.N(1)) dcache_we_reg2(.q(dcache_we_value), .d(dcache_we_next), .rst(reset), .clk(clk));
   assign DCache_WE = dcache_we_value && ~nop_X;
 
@@ -133,12 +124,10 @@ module control(
   REGISTER_R #(.N(2)) wb_sel_reg1(.q(wb_sel_imm), .d(wb_sel_next), .rst(reset), .clk(clk));
   REGISTER_R #(.N(2)) wb_sel_reg2(.q(WB_Sel), .d(wb_sel_imm), .rst(reset), .clk(clk));
 
-  reg regfile_we_next; /* See Notes below */
+  reg regfile_we_next;
   wire regfile_we_imm1;
   wire regfile_we_imm2;
-  // Another register for delay since technically the one after?
   REGISTER_R regfile_we_reg1(.q(regfile_we_imm1), .d(regfile_we_next), .rst(reset), .clk(clk));
-  //REGISTER_R regfile_we_reg1(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));s
   REGISTER_R regfile_we_reg2(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));
   assign RegFile_WE = regfile_we_imm2 && ~nop_M;
 
@@ -149,23 +138,11 @@ module control(
   assign ST_Size = func3_X[1:0];
   assign LD_Size = func3_M;
 
-  /* if it gets more complicated, move it to another module? */
-//  assign bypass_a_next = ((regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) || (RegFile_WE && (rs1 == rd_M)))&& (rs1!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
-//  assign bypass_b_next = ((regfile_we_imm1 && (rs2 == rd_X) && ~nop_X) || (RegFile_WE && (rs2 == rd_M)))&&(rs1!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
+  //Bypassing
   assign bypass_a_next = ((regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) || (RegFile_WE && (rs1 == rd_M)))&& (rs1!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
   assign bypass_b_next = ((regfile_we_imm1 && (rs2 == rd_X) && ~nop_X) || (RegFile_WE && (rs2 == rd_M)))&&(rs2!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
-
-//  assign bypass_sel_next = ((rs1 == rd_X) || (rs2 == rd_X)) ? `BYPASS_CURR : `BYPASS_DELAY;
   assign bypass_delay_next_a = (regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) ? `BYPASS_CURR : `BYPASS_DELAY;
   assign bypass_delay_next_b = (regfile_we_imm1 && (rs2 == rd_X) && ~nop_X)  ? `BYPASS_CURR : `BYPASS_DELAY;
-
-
-//braeden's version (bad)
-//  assign Bypass_A = ((RegFile_WE && (rs1_X == rd_M)) || (RegFile_WE && (rs1 == rd_M))) ? `BYPASS_TRUE : `BYPASS_FALSE;
-//  assign Bypass_B = ((RegFile_WE && (rs2_X == rd_M)) || (RegFile_WE && (rs2 == rd_M))) ? `BYPASS_TRUE : `BYPASS_FALSE;
-// assign Bypass_Delay_A = (rs1 == rd_M) ? `BYPASS_DELAY : `BYPASS_CURR;
-//  assign Bypass_Delay_B = (rs2 == rd_M) ? `BYPASS_DELAY : `BYPASS_CURR;
-
 
   always @(*) begin
     //nops
@@ -175,7 +152,7 @@ module control(
     csr_sel_next = `CSRSEL_IMM;
     csr_we_next = `WRITE_DISABLE;
 
-    // TODO: BRANCHES
+    //BRANCHES
     in_b_next = 1'b0;
 
     if (in_b_val == 1'b1) begin
@@ -361,7 +338,7 @@ module control(
 
       end
 
-	    //For CSR
+      //For CSR
       `OPC_SYSTEM: begin
 
         ImmSel = `IMMSEL_U; //doesn't matter
@@ -370,18 +347,14 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_DISABLE;
         wb_sel_next = `WBSEL_ALU; //doesn't matter
+	csr_we_next = ~Inst_Kill;
 
-
-
-
-	      csr_we_next = ~Inst_Kill;
-
-    	  if(func3 == `FNC_CSRRW) begin
-    		  csr_sel_next = `CSRSEL_A;
-	      end else if(func3 == `FNC_CSRRWI) begin
-    		  csr_sel_next = `CSRSEL_IMM;
-      	end
-	     end
+    	if(func3 == `FNC_CSRRW) begin
+    		csr_sel_next = `CSRSEL_A;
+	end else if(func3 == `FNC_CSRRWI) begin
+    		csr_sel_next = `CSRSEL_IMM;
+      	 end
+	end
 
 
       default: begin
@@ -396,10 +369,7 @@ module control(
         wb_sel_next = 0;
       end
 
-
       endcase
-
-    //end // else
   end // always block
 
 endmodule
