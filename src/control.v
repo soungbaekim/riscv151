@@ -192,7 +192,7 @@ module control(
       PC_Sel = `PCSEL_PLUS4;
     end
     */
-
+    /*
     if (will_branch == 1'b1) begin
 
       //PC_Sel = `PCSEL_ALU;
@@ -208,8 +208,9 @@ module control(
 
 
     end
-    else begin
 
+    else begin
+    */
       case (opcode)
       `OPC_LUI: begin
 
@@ -388,7 +389,7 @@ module control(
 
       endcase
 
-    end // else
+    //end // else
   end // always block
 
 endmodule
