@@ -115,7 +115,7 @@ assign s2_SrcB= (bypass_B) ? s2_bypass_value_B : s2_reg_SrcB;
 wire BrEq, BrLT; //to controller
 wire BrUn; //from controller
 assign BrEq = (s2_SrcA==s2_SrcB) ? 1'b1 : 1'b0;
-assign BrLT = ((BrUn==0 && s2_SrcA<s2_SrcB) || (BrUn==1 && $signed(s2_SrcA)<$signed(s2_SrcB))) ? 1'b1 : 1'b0;
+assign BrLT = ((BrUn==1 && s2_SrcA<s2_SrcB) || (BrUn==0 && $signed(s2_SrcA)<$signed(s2_SrcB))) ? 1'b1 : 1'b0;
 
 
 //input MUXes to ALU
