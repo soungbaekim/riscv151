@@ -284,7 +284,7 @@ module control(
 
 
         in_b_next = 1'b1;
-        case (func3_X)
+        case (func3)
           `FNC_BLTU, `FNC_BGEU: BrUn_next = 1'b1;
           default: BrUn_next = 1'b0;
         endcase
