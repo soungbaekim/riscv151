@@ -236,7 +236,7 @@ module control(
         dcache_we_next = `WRITE_DISABLE;
         regfile_we_next = `WRITE_ENABLE;
 
-        wb_sel_next = `WBSEL_PC4;
+        wb_sel_next = `WBSEL_ALU;
 
 
       end
