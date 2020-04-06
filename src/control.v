@@ -371,7 +371,7 @@ module control(
 
 
 
-	      csr_we_next = `WRITE_ENABLE;
+	      csr_we_next = ~Inst_Kill;
 
     	  if(func3 == `FNC_CSRRW) begin
     		  csr_sel_next = `CSRSEL_A;
