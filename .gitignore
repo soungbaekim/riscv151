@@ -6,3 +6,4 @@ build/*
 asm_output/*
 *.input
 DVE*
+bmark_output/*
