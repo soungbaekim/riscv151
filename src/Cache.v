@@ -330,13 +330,12 @@ always@(*) begin
 		READ_MEM_WAIT: begin
 			mem_req_rw=MEMORY_READ;
 			next_count = count;
+			mem_req_addr = mem_addr;
 			if(mem_req_ready) begin
 				next_state = READ_MEM;
-				mem_req_addr = mem_addr;
 				mem_req_valid = 1'b1;
 			end else begin
 				next_state = READ_MEM_WAIT;
-				mem_req_addr = mem_addr;
 				mem_req_valid = 1'b0;
 			end
 		end
@@ -352,11 +351,6 @@ always@(*) begin
 				data_addr_input = {data_addr[7:2],low2_mem_bits};
 				data_addr_next = {data_addr[7:2], low2_mem_bits_increment};
 			
-				//Setup memory for next read
-				mem_req_valid = 1'b1;
-				mem_req_rw = MEMORY_READ;
-				mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
-				
 				//Identify the word we need to return to CPU
 				if(data_addr[1:0]==mem_addr[1:0]) begin //not 100% sure
 					case(word_offset)
@@ -372,10 +366,18 @@ always@(*) begin
 					cpu_resp_data = temp_word;
 					cpu_req_ready=0; //not ready since still writing to cache, will require a full cycle in INIT
 					next_state = INIT;
-				end else if(mem_req_ready) begin
-					next_state = READ_MEM;
 				end else begin
-					next_state = READ_MEM_WAIT;
+					mem_req_rw = MEMORY_READ;
+					mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
+					mem_req_addr={mem_addr[27:2],low2_mem_bits_increment};
+				
+					if(mem_req_ready) begin
+						next_state = READ_MEM;
+						mem_req_valid = 1'b1;							
+					end else begin
+						mem_req_valid = 1'b0;
+						next_state = READ_MEM_WAIT;
+					end
 				end		
 			end else begin
 				next_state = READ_MEM;
