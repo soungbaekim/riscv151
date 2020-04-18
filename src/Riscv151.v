@@ -31,7 +31,7 @@ reg [31:0] s0_PC;
 wire [1:0] PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
 assign s1_PCplus4 = s1_PC + 4;
 wire [31:0] s2_ALUout;
-REGISTER_R #(.N(WIDTH), .INIT(`PC_RESET_MINUS4)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH), .INIT(`PC_RESET_MINUS4)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .ce(~stall), .clk(clk));
 always@(*) begin
 	case(PCsel)
 		2'd0: s0_PC=s1_PCplus4;
@@ -89,13 +89,13 @@ end
 //s1 to s2 registers
 wire [31:0] s2_PC, s2_reg_SrcA, s2_reg_SrcB, s2_imm, s2_PCplus4;
 wire [4:0] s2_CSR_imm, s2_A0;
-REGISTER_R #(.N(WIDTH)) s12_reg0(.q(s2_PC), .d(s1_PC), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s12_reg1(.q(s2_reg_SrcA), .d(s1_reg_SrcA), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s12_reg2(.q(s2_reg_SrcB), .d(s1_reg_SrcB), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s12_reg3(.q(s2_imm), .d(s1_imm), .rst(reset), .clk(clk));
-REGISTER_R #(.N(5)) s12_reg4(.q(s2_CSR_imm), .d(s1_CSR_imm), .rst(reset), .clk(clk));
-REGISTER_R #(.N(5)) s12_reg5(.q(s2_A0), .d(s1_A0), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s12_reg6(.q(s2_PCplus4), .d(s1_PCplus4), .rst(reset), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s12_reg0(.q(s2_PC), .d(s1_PC), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s12_reg1(.q(s2_reg_SrcA), .d(s1_reg_SrcA), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s12_reg2(.q(s2_reg_SrcB), .d(s1_reg_SrcB), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s12_reg3(.q(s2_imm), .d(s1_imm), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(5)) s12_reg4(.q(s2_CSR_imm), .d(s1_CSR_imm), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(5)) s12_reg5(.q(s2_A0), .d(s1_A0), .rst(reset), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s12_reg6(.q(s2_PCplus4), .d(s1_PCplus4), .rst(reset), .ce(~stall), .clk(clk));
 
 
 //Bypass muxes
@@ -201,10 +201,10 @@ assign s2_CSR_WD = (CSR_sel) ? s2_CSR_imm_ext : s2_SrcA;
 
 //s1 to s2 registers
 wire [31:0] s3_ALUout, s3_CSR_WD, s3_PCplus4;
-REGISTER_R #(.N(WIDTH)) s23_reg0(.q(s3_ALUout), .d(s2_ALUout), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s23_reg1(.q(s3_CSR_WD), .d(s2_CSR_WD), .rst(reset), .clk(clk));
-REGISTER_R #(.N(5)) s23_reg2(.q(s3_A0), .d(s2_A0), .rst(reset), .clk(clk));
-REGISTER_R #(.N(WIDTH)) s23_reg3(.q(s3_PCplus4), .d(s2_PCplus4), .rst(reset), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s23_reg0(.q(s3_ALUout), .d(s2_ALUout), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s23_reg1(.q(s3_CSR_WD), .d(s2_CSR_WD), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(5)) s23_reg2(.q(s3_A0), .d(s2_A0), .rst(reset), .ce(~stall), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) s23_reg3(.q(s3_PCplus4), .d(s2_PCplus4), .rst(reset), .ce(~stall), .clk(clk));
 
 
 //DCache
@@ -262,7 +262,7 @@ end
 //Bypass
 wire [31:0] s3_WB_delay;
 wire bypass_delay_A, bypass_delay_B; //from controller
-REGISTER_R #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .clk(clk));
+REGISTER_R_CE #(.N(WIDTH)) bypass_reg(.q(s3_WB_delay), .d(s3_WB), .rst(reset), .ce(~stall), .clk(clk));
 assign s2_bypass_value_A = (bypass_delay_A) ? s3_WB_delay : s3_WB;
 assign s2_bypass_value_B = (bypass_delay_B) ? s3_WB_delay : s3_WB;
 
@@ -272,6 +272,7 @@ control myController(
 	.clk(clk),
 	.reset(reset),
 	.inst(s1_inst_read),
+  .stall(stall),
  // Stage I
 	.PC_Sel(PCsel),
  	.ICache_RE(icache_re),

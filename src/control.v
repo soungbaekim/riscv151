@@ -9,6 +9,7 @@ module control(
   input             clk,
   input             reset,
   input [31:0]      inst,
+  input             stall,
 
   // Stage I
   output [1:0]  PC_Sel,
@@ -58,78 +59,78 @@ module control(
 
   // Control Registers
   wire [2:0] func3_X, func3_M;
-  REGISTER_R #(.N(3)) func3_X_reg(.q(func3_X), .d(func3), .rst(reset), .clk(clk));
-  REGISTER_R #(.N(3)) func3_M_reg(.q(func3_M), .d(func3_X), .rst(reset), .clk(clk));
+  REGISTER_R_CE #(.N(3)) func3_X_reg(.q(func3_X), .d(func3), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE #(.N(3)) func3_M_reg(.q(func3_M), .d(func3_X), .rst(reset), .ce(~stall), .clk(clk));
 
   wire [4:0] rd_X, rd_M, rs1_X, rs1_M, rs2_X, rs2_M;
-  REGISTER_R #(.N(5)) rd_X_reg(.q(rd_X), .d(rd), .rst(reset), .clk(clk));
-  REGISTER_R #(.N(5)) rd_M_reg(.q(rd_M), .d(rd_X), .rst(reset), .clk(clk));
+  REGISTER_R_CE #(.N(5)) rd_X_reg(.q(rd_X), .d(rd), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE #(.N(5)) rd_M_reg(.q(rd_M), .d(rd_X), .rst(reset), .ce(~stall), .clk(clk));
 
-  REGISTER_R #(.N(5)) rs1_X_reg(.q(rs1_X), .d(rs1), .rst(reset), .clk(clk));
-  REGISTER_R #(.N(5)) rs1_M_reg(.q(rs1_M), .d(rs1_X), .rst(reset), .clk(clk));
+  REGISTER_R_CE #(.N(5)) rs1_X_reg(.q(rs1_X), .d(rs1), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE #(.N(5)) rs1_M_reg(.q(rs1_M), .d(rs1_X), .rst(reset), .ce(~stall), .clk(clk));
 
-  REGISTER_R #(.N(5)) rs2_X_reg(.q(rs2_X), .d(rs2), .rst(reset), .clk(clk));
-  REGISTER_R #(.N(5)) rs2_M_reg(.q(rs2_M), .d(rs2_X), .rst(reset), .clk(clk));
+  REGISTER_R_CE #(.N(5)) rs2_X_reg(.q(rs2_X), .d(rs2), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE #(.N(5)) rs2_M_reg(.q(rs2_M), .d(rs2_X), .rst(reset), .ce(~stall), .clk(clk));
 
   // nop handler
   wire nop_I, nop_X, nop_M;
-  REGISTER_R nop_IX_reg(.q(nop_X), .d(Inst_Kill), .rst(reset), .clk(clk));
-  REGISTER_R nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .clk(clk));
+  REGISTER_R_CE nop_IX_reg(.q(nop_X), .d(Inst_Kill), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE nop_XM_reg(.q(nop_M), .d(nop_X), .rst(reset), .ce(~stall), .clk(clk));
 
   reg inst_kill_next;
   wire inst_kill_value;
-  REGISTER_R inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .rst(reset), .clk(clk));
+  REGISTER_R_CE inst_kill_reg(.q(inst_kill_value), .d(inst_kill_next), .ce(~stall), .rst(reset), .clk(clk));
 
   // Branches
   wire in_b_val;
   reg in_b_next, will_branch;
-  REGISTER_R is_b_reg (.q(in_b_val), .d(in_b_next), .rst(reset), .clk(clk));
+  REGISTER_R_CE is_b_reg (.q(in_b_val), .d(in_b_next), .rst(reset), .ce(~stall), .clk(clk));
   reg BrUn_next;
-  REGISTER_R br_un_reg (.q(BrUn), .d(BrUn_next), .rst(reset), .clk(clk));
+  REGISTER_R_CE br_un_reg (.q(BrUn), .d(BrUn_next), .rst(reset), .ce(~stall), .clk(clk));
 
 
   // Stage X Registers
   reg csr_sel_next, a_sel_next, b_sel_next;
   wire bypass_a_next, bypass_b_next;
   wire  bypass_delay_next_a, bypass_delay_next_b;
-  REGISTER_R #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .clk(clk));
-  REGISTER_R csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .clk(clk));
+  REGISTER_R_CE #(.N(ALU_WIDTH)) aluop_reg(.q(ALUop), .d(aluop_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE csr_sel_reg(.q(CSR_Sel), .d(csr_sel_next), .rst(reset), .ce(~stall), .clk(clk));
 
 
  // Bypass registers
-  REGISTER_R bypass_a_reg(.q(Bypass_A), .d(bypass_a_next), .rst(reset), .clk(clk));
-  REGISTER_R bypass_b_reg(.q(Bypass_B), .d(bypass_b_next), .rst(reset), .clk(clk));
-  REGISTER_R bypass_delay_reg_a(.q(Bypass_Delay_A), .d(bypass_delay_next_a), .rst(reset), .clk(clk));
-  REGISTER_R bypass_delay_reg_b(.q(Bypass_Delay_B), .d(bypass_delay_next_b), .rst(reset), .clk(clk));
+  REGISTER_R_CE bypass_a_reg(.q(Bypass_A), .d(bypass_a_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE bypass_b_reg(.q(Bypass_B), .d(bypass_b_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE bypass_delay_reg_a(.q(Bypass_Delay_A), .d(bypass_delay_next_a), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE bypass_delay_reg_b(.q(Bypass_Delay_B), .d(bypass_delay_next_b), .rst(reset), .ce(~stall), .clk(clk));
 
  //A/B select registers
-  REGISTER_R a_sel_reg(.q(A_Sel), .d(a_sel_next), .rst(reset), .clk(clk));
-  REGISTER_R b_sel_reg(.q(B_Sel), .d(b_sel_next), .rst(reset), .clk(clk));
+  REGISTER_R_CE a_sel_reg(.q(A_Sel), .d(a_sel_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE b_sel_reg(.q(B_Sel), .d(b_sel_next), .rst(reset), .ce(~stall), .clk(clk));
 
   // Stage M registers
   reg  dcache_we_next;   /* See Notes below */
   wire dcache_we_value;
-  REGISTER_R #(.N(1)) dcache_we_reg2(.q(dcache_we_value), .d(dcache_we_next), .rst(reset), .clk(clk));
-  assign DCache_WE = dcache_we_value && ~nop_X;
+  REGISTER_R_CE #(.N(1)) dcache_we_reg2(.q(dcache_we_value), .d(dcache_we_next), .rst(reset), .ce(~stall), .clk(clk));
+  assign DCache_WE = dcache_we_value && ~nop_X && ~stall;
 
   reg csr_we_next;
   wire csr_we_imm;
   wire csr_we_imm2;
-  REGISTER_R csr_we_reg1(.q(csr_we_imm), .d(csr_we_next), .rst(reset), .clk(clk));
-  REGISTER_R csr_we_reg2(.q(csr_we_imm2), .d(csr_we_imm), .rst(reset), .clk(clk));
-  assign CSR_we = csr_we_imm2 && ~nop_M;
+  REGISTER_R_CE csr_we_reg1(.q(csr_we_imm), .d(csr_we_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE csr_we_reg2(.q(csr_we_imm2), .d(csr_we_imm), .rst(reset), .ce(~stall), .clk(clk));
+  assign CSR_we = csr_we_imm2 && ~nop_M && ~stall;
 
   reg [1:0] wb_sel_next;
   wire [1:0] wb_sel_imm;
-  REGISTER_R #(.N(2)) wb_sel_reg1(.q(wb_sel_imm), .d(wb_sel_next), .rst(reset), .clk(clk));
-  REGISTER_R #(.N(2)) wb_sel_reg2(.q(WB_Sel), .d(wb_sel_imm), .rst(reset), .clk(clk));
+  REGISTER_R_CE #(.N(2)) wb_sel_reg1(.q(wb_sel_imm), .d(wb_sel_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE #(.N(2)) wb_sel_reg2(.q(WB_Sel), .d(wb_sel_imm), .rst(reset), .ce(~stall), .clk(clk));
 
   reg regfile_we_next;
   wire regfile_we_imm1;
   wire regfile_we_imm2;
-  REGISTER_R regfile_we_reg1(.q(regfile_we_imm1), .d(regfile_we_next), .rst(reset), .clk(clk));
-  REGISTER_R regfile_we_reg2(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .clk(clk));
-  assign RegFile_WE = regfile_we_imm2 && ~nop_M;
+  REGISTER_R_CE regfile_we_reg1(.q(regfile_we_imm1), .d(regfile_we_next), .rst(reset), .ce(~stall), .clk(clk));
+  REGISTER_R_CE regfile_we_reg2(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .ce(~stall), .clk(clk));
+  assign RegFile_WE = regfile_we_imm2 && ~nop_M && ~stall;
 
   assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
   assign Inst_Kill = inst_kill_value || will_branch;
@@ -139,8 +140,8 @@ module control(
   assign LD_Size = func3_M;
 
   //Bypassing
-  assign bypass_a_next = ((regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) || (RegFile_WE && (rs1 == rd_M)))&& (rs1!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
-  assign bypass_b_next = ((regfile_we_imm1 && (rs2 == rd_X) && ~nop_X) || (RegFile_WE && (rs2 == rd_M)))&&(rs2!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
+  assign bypass_a_next = ((regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) || (RegFile_WE && (rs1 == rd_M))) && (rs1!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
+  assign bypass_b_next = ((regfile_we_imm1 && (rs2 == rd_X) && ~nop_X) || (RegFile_WE && (rs2 == rd_M))) &&(rs2!=5'd0) ? `BYPASS_TRUE : `BYPASS_FALSE;
   assign bypass_delay_next_a = (regfile_we_imm1 && (rs1 == rd_X) && ~nop_X) ? `BYPASS_CURR : `BYPASS_DELAY;
   assign bypass_delay_next_b = (regfile_we_imm1 && (rs2 == rd_X) && ~nop_X)  ? `BYPASS_CURR : `BYPASS_DELAY;
 
@@ -390,6 +391,9 @@ endmodule
           should be set before the clock rises again (going into stage M) since the write is expected to happen on that clock
           edge.
         - similar case for regfile_we
+
+
+    Stalls: Using clock enables?
 
 
 */
