@@ -45,6 +45,7 @@ parameter READ_MEM = 3'b011;
 parameter WRITE_HIT = 3'b100;
 parameter READ_MEM_WAIT = 3'b101;
 parameter WRITE_WAIT = 3'b110;
+parameter READ_MEM_DONE = 3'b111;
 
 
 //SRAM signals
@@ -362,10 +363,8 @@ always@(*) begin
 				end
 				
 				if(count==2'b11) begin
-					cpu_resp_valid = 1;
-					cpu_resp_data = temp_word;
-					cpu_req_ready=0; //not ready since still writing to cache, will require a full cycle in INIT
-					next_state = INIT;
+					cpu_req_ready=0; //not ready since still writing to cache, will require a full cycle more
+					next_state = READ_MEM_DONE;
 				end else begin
 					mem_req_rw = MEMORY_READ;
 					mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
@@ -382,6 +381,44 @@ always@(*) begin
 			end else begin
 				next_state = READ_MEM;
 			end
+		end
+
+		READ_MEM_DONE: begin
+			cpu_resp_data=temp_word;
+			cpu_resp_valid=1;
+			cpu_req_ready=1;
+
+				//So that we can do this in one cycle, we need
+				//to have everything set like we were already
+				//in INIT
+				cpu_req_ready=1;
+				data_addr_next = cpu_data_addr_new;
+				data_addr_input = cpu_data_addr_new;
+				tag_addr_next = cpu_tag_addr_new;
+				tag_addr_input = cpu_tag_addr_new;
+				cpu_tag_next = cpu_tag_new;
+				word_offset_next = cpu_word_offset_new;
+				mem_addr_next = cpu_mem_addr_new;
+				cpu_write_mask_next = cpu_write_mask_new;
+				data_web=WEB_READ;
+				tag_web=WEB_READ;
+				if(cpu_req_valid) begin
+					if(cpu_req_write==4'b0000) begin
+						next_state=READ;				
+					end else begin					
+						if(mem_req_ready & mem_req_data_ready) begin
+							next_state=WRITE;
+							mem_req_valid = 1;
+							mem_req_data_valid=1;
+							mem_req_addr = cpu_mem_addr_new; 
+							mem_req_data_bits = shifted_data_new;
+							mem_req_data_mask = data_bytemask_new;
+						end else begin
+							next_state=WRITE_WAIT;
+						end
+					end
+				end else next_state = INIT;			
+				//END INIT BLOCK
 		end
 
 
