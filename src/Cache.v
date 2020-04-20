@@ -38,14 +38,14 @@ parameter WEB_READ = 1'b1;
 parameter WEB_WRITE = 1'b0;
 parameter MEMORY_READ = 1'b0;
 parameter MEMORY_WRITE = 1'b1; 
+
 parameter INIT = 3'b000;
 parameter READ = 3'b001;
-parameter WRITE = 3'b010;
-parameter READ_MEM = 3'b011;
-parameter WRITE_HIT = 3'b100;
-parameter READ_MEM_WAIT = 3'b101;
-parameter WRITE_WAIT = 3'b110;
-parameter READ_MEM_DONE = 3'b111;
+parameter WRITE = 3'b110;
+parameter READ_MEM = 3'b010;
+parameter READ_MEM_WAIT = 3'b011;
+parameter WRITE_WAIT = 3'b101;
+parameter READ_MEM_DONE = 3'b100;
 
 
 //SRAM signals
@@ -316,8 +316,10 @@ always@(*) begin
 				tag_web = WEB_WRITE;
 				tag_addr_input = tag_addr; 
 				tag_write = {{8'd0},{1'b1},cpu_tag}; //zeros, valid=1, updated tag
-				mem_addr_next={mem_addr[27:2],data_addr[1:0]}; 
-				mem_req_addr = {mem_addr[27:2],data_addr[1:0]};
+				//mem_addr_next={mem_addr[27:2],data_addr[1:0]}; 
+				//mem_req_addr = {mem_addr[27:2],data_addr[1:0]};
+				mem_addr_next = mem_addr;
+				mem_req_addr = mem_addr;
 				if(mem_req_ready) begin
 					next_state = READ_MEM;
 					mem_req_valid = 1'b1;
@@ -367,9 +369,11 @@ always@(*) begin
 					next_state = READ_MEM_DONE;
 				end else begin
 					mem_req_rw = MEMORY_READ;
-					mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
+					//mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
 					mem_req_addr={mem_addr[27:2],low2_mem_bits_increment};
-				
+					
+					next_state=READ_MEM;
+					/*	
 					if(mem_req_ready) begin
 						next_state = READ_MEM;
 						mem_req_valid = 1'b1;							
@@ -377,6 +381,7 @@ always@(*) begin
 						mem_req_valid = 1'b0;
 						next_state = READ_MEM_WAIT;
 					end
+					*/
 				end		
 			end else begin
 				next_state = READ_MEM;
