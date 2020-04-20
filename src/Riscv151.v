@@ -94,7 +94,7 @@ REGISTER_R_CE #(.N(WIDTH)) s12_reg1(.q(s2_reg_SrcA), .d(s1_reg_SrcA), .rst(reset
 REGISTER_R_CE #(.N(WIDTH)) s12_reg2(.q(s2_reg_SrcB), .d(s1_reg_SrcB), .rst(reset), .ce(~stall), .clk(clk));
 REGISTER_R_CE #(.N(WIDTH)) s12_reg3(.q(s2_imm), .d(s1_imm), .rst(reset), .ce(~stall), .clk(clk));
 REGISTER_R_CE #(.N(5)) s12_reg4(.q(s2_CSR_imm), .d(s1_CSR_imm), .rst(reset), .ce(~stall), .clk(clk));
-REGISTER_R_CE #(.N(5)) s12_reg5(.q(s2_A0), .d(s1_A0), .rst(reset), .clk(clk));
+REGISTER_R_CE #(.N(5)) s12_reg5(.q(s2_A0), .d(s1_A0), .rst(reset), .ce(~stall), .clk(clk));
 REGISTER_R_CE #(.N(WIDTH)) s12_reg6(.q(s2_PCplus4), .d(s1_PCplus4), .rst(reset), .ce(~stall), .clk(clk));
 
 
