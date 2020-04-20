@@ -102,9 +102,11 @@ REGISTER_R #(.N(4)) cpu_write_mask_reg(.q(cpu_write_mask), .d(cpu_write_mask_nex
 
 
 
-wire[1:0] low2_mem_bits, low2_mem_bits_increment;
+wire[1:0] low2_mem_bits, low2_mem_bits_increment, low2_data_bits, low2_data_bits_increment;
 assign low2_mem_bits = mem_addr[1:0];
 assign low2_mem_bits_increment = low2_mem_bits + 2'b01;
+assign low2_data_bits = data_addr[1:0];
+assign low2_data_bits_increment = low2_data_bits + 2'b01;
 
 reg [31:0] data_read_word;
 reg [127:0] shifted_data, shifted_data_new;
@@ -351,9 +353,10 @@ always@(*) begin
 				//Write memory data just retrieved to cache
 				data_web = WEB_WRITE;			
 				data_write = mem_resp_data;			
-				data_addr_input = {data_addr[7:2],low2_mem_bits};
-				data_addr_next = {data_addr[7:2], low2_mem_bits_increment};
-			
+				data_addr_input = {data_addr[7:2],low2_data_bits}; //low2_mem_bits};
+				data_addr_next = {data_addr[7:2], low2_data_bits_increment};
+				data_bytemask = 16'hffff;
+	
 				//Identify the word we need to return to CPU
 				if(data_addr[1:0]==mem_addr[1:0]) begin //not 100% sure
 					case(word_offset)
