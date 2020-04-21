@@ -23,7 +23,7 @@ localparam integer LOGDEPTH = 5;
 localparam DEPTH = (1 << LOGDEPTH);
 
 //This will need to be changed
-assign dcache_re = 1'b1;
+wire dcache_re;
 
 //Program count
 wire [31:0] s1_PC, s1_PCplus4;
@@ -291,6 +291,7 @@ control myController(
 	.Bypass_Delay_A(bypass_delay_A),
 	.Bypass_Delay_B(bypass_delay_B),
 // Stage M
+  .DCache_RE(dcache_re),
 	.DCache_WE(dcache_we_bit),
 	.RegFile_WE(RegFile_WE),
 	.CSR_we(CSR_we),

@@ -65,5 +65,9 @@
 `define WRITE_DISABLE 1'b0
 `define WRITE_ENABLE 1'b1
 
+`define READ_DISABLE 1'b0
+`define READ_ENABLE 1'b1
+
+
 
 `endif //CONST
