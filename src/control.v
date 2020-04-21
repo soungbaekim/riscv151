@@ -30,6 +30,7 @@ module control(
   output 	    Bypass_Delay_B,
 
   // Stage M
+  output            DCache_RE,
   output            DCache_WE,
   output            RegFile_WE,
   output            CSR_we,
@@ -112,6 +113,11 @@ module control(
   wire dcache_we_value;
   REGISTER_R_CE #(.N(1)) dcache_we_reg2(.q(dcache_we_value), .d(dcache_we_next), .rst(reset), .ce(~stall), .clk(clk));
   assign DCache_WE = dcache_we_value && ~nop_X && ~stall;
+
+  reg  dcache_re_next;   /* See Notes below */
+  wire dcache_re_value;
+  REGISTER_R_CE #(.N(1)) dcache_re_reg2(.q(dcache_re_value), .d(dcache_re_next), .rst(reset), .ce(~stall), .clk(clk));
+  assign DCache_RE = dcache_re_value && ~nop_X && ~stall;
 
   reg csr_we_next;
   wire csr_we_imm;
@@ -208,6 +214,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -222,6 +230,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -237,6 +247,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_PC4;
@@ -244,6 +256,7 @@ module control(
         // TODO:nop
         inst_kill_next = ~Inst_Kill;
       end
+
       `OPC_JALR: begin
         ImmSel = `IMMSEL_I;
 
@@ -251,6 +264,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_PC4;
@@ -267,6 +282,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -288,6 +305,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_ENABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_DISABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -302,6 +321,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_ENABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_DATA;
@@ -318,6 +339,8 @@ module control(
         b_sel_next = `BSEL_REG;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -332,6 +355,8 @@ module control(
         b_sel_next = `BSEL_IMM;
 
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
+
         regfile_we_next = `WRITE_ENABLE;
 
         wb_sel_next = `WBSEL_ALU;
@@ -346,6 +371,7 @@ module control(
         a_sel_next = `ASEL_REG; //doesn't matter
         b_sel_next = `BSEL_REG; //doesn't matter
         dcache_we_next = `WRITE_DISABLE;
+        dcache_re_next = `READ_DISABLE;
         regfile_we_next = `WRITE_DISABLE;
         wb_sel_next = `WBSEL_ALU; //doesn't matter
 	csr_we_next = ~Inst_Kill;
@@ -365,6 +391,7 @@ module control(
         b_sel_next = 0;
 
         dcache_we_next = 0;
+        dcache_re_next = `READ_DISABLE;
         regfile_we_next = 0;
 
         wb_sel_next = 0;
