@@ -74,6 +74,9 @@ no_cache_mem dcache (
   .cpu_resp_data(dcache_dout)
 );
 assign stall =  ~i_stall_n || ~d_stall_n;
+assign stall_i = ~i_stall_n;
+assign stall_d = ~d_stall_n;
+
 
 
 `else

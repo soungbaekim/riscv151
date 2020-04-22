@@ -41,12 +41,12 @@ parameter MEMORY_WRITE = 1'b1;
 
 parameter INIT = 3'b000;
 parameter READ = 3'b001;
-parameter WRITE = 3'b110;
+parameter WRITE_DONE = 3'b110;
 parameter READ_MEM = 3'b010;
 parameter READ_MEM_WAIT = 3'b011;
 parameter WRITE_WAIT = 3'b101;
 parameter READ_MEM_DONE = 3'b100;
-
+parameter WRITE_DATA_WAIT = 3'b111;
 
 //SRAM signals
 reg data_web;
@@ -259,8 +259,26 @@ always@(*) begin
 			word_offset_next = cpu_word_offset_new;
 			mem_addr_next = cpu_mem_addr_new;
 			cpu_write_mask_next = cpu_write_mask_new;
+			cpu_write_data_next = cpu_req_data;
 			data_web=WEB_READ;
 			tag_web=WEB_READ;
+			if(cpu_req_valid) begin
+					if(cpu_req_write==4'b0000) begin
+						next_state=READ;				
+					end else begin					
+						if(mem_req_ready) begin
+							next_state=WRITE_DATA_WAIT;
+							mem_req_valid = 1;
+							//mem_req_data_valid=1;
+							mem_req_addr = cpu_mem_addr_new; 
+							//mem_req_data_bits = shifted_data_new;
+							//mem_req_data_mask = data_bytemask_new;
+							mem_req_rw = MEMORY_WRITE; 			
+						end else begin
+							next_state=WRITE_WAIT;
+						end
+					end
+/*
 			if(cpu_req_valid) begin
 				if(cpu_req_write==4'b0000) begin
 					next_state=READ;				
@@ -276,6 +294,7 @@ always@(*) begin
 						next_state=WRITE_WAIT;
 					end
 				end
+*/
 			end else next_state = INIT;		
 		end
 
@@ -297,8 +316,26 @@ always@(*) begin
 				word_offset_next = cpu_word_offset_new;
 				mem_addr_next = cpu_mem_addr_new;
 				cpu_write_mask_next = cpu_write_mask_new;
+				cpu_write_data_next = cpu_req_data;
 				data_web=WEB_READ;
 				tag_web=WEB_READ;
+				if(cpu_req_valid) begin
+					if(cpu_req_write==4'b0000) begin
+						next_state=READ;				
+					end else begin					
+						if(mem_req_ready) begin
+							next_state=WRITE_DATA_WAIT;
+							mem_req_valid = 1;
+							//mem_req_data_valid=1;
+							mem_req_addr = cpu_mem_addr_new; 
+							//mem_req_data_bits = shifted_data_new;
+							//mem_req_data_mask = data_bytemask_new;
+							mem_req_rw = MEMORY_WRITE; 					
+						end else begin
+							next_state=WRITE_WAIT;
+						end
+					end
+/*
 				if(cpu_req_valid) begin
 					if(cpu_req_write==4'b0000) begin
 						next_state=READ;				
@@ -314,6 +351,7 @@ always@(*) begin
 							next_state=WRITE_WAIT;
 						end
 					end
+*/
 				end else next_state = INIT;			
 				//END INIT BLOCK
 
@@ -415,8 +453,28 @@ always@(*) begin
 				word_offset_next = cpu_word_offset_new;
 				mem_addr_next = cpu_mem_addr_new;
 				cpu_write_mask_next = cpu_write_mask_new;
+				cpu_write_data_next = cpu_req_data;
 				data_web=WEB_READ;
 				tag_web=WEB_READ;
+				
+
+				if(cpu_req_valid) begin
+					if(cpu_req_write==4'b0000) begin
+						next_state=READ;				
+					end else begin					
+						if(mem_req_ready) begin
+							next_state=WRITE_DATA_WAIT;
+							mem_req_valid = 1;
+							//mem_req_data_valid=1;
+							mem_req_addr = cpu_mem_addr_new; 
+							//mem_req_data_bits = shifted_data_new;
+							//mem_req_data_mask = data_bytemask_new;
+							mem_req_rw = MEMORY_WRITE; 
+						end else begin
+							next_state=WRITE_WAIT;
+						end
+					end
+/*
 				if(cpu_req_valid) begin
 					if(cpu_req_write==4'b0000) begin
 						next_state=READ;				
@@ -432,22 +490,13 @@ always@(*) begin
 							next_state=WRITE_WAIT;
 						end
 					end
+*/
 				end else next_state = INIT;			
 				//END INIT BLOCK
 		end
 
 
-		WRITE: begin
-			if((cpu_tag == cache_tag)&&valid) begin //write hit
-				//next_state = WRITE_HIT;
-				data_web = WEB_WRITE;
-				data_addr_input = data_addr;
-				data_write = shifted_data;
-				next_state=INIT;
-				//can't accept new cpu request, still writing
-				//to cache
-				cpu_req_ready = 0;
-			end else begin //write miss	
+		WRITE_DONE: begin
 				//So that we can do this in one cycle, we need
 				//to have everything set like we were already
 				//in INIT
@@ -460,27 +509,48 @@ always@(*) begin
 				word_offset_next = cpu_word_offset_new;
 				mem_addr_next = cpu_mem_addr_new;
 				cpu_write_mask_next = cpu_write_mask_new;
+				cpu_write_data_next = cpu_req_data;
 				data_web=WEB_READ;
 				tag_web=WEB_READ;
 				if(cpu_req_valid) begin
 					if(cpu_req_write==4'b0000) begin
 						next_state=READ;				
 					end else begin					
-						if(mem_req_ready & mem_req_data_ready) begin
-							next_state=WRITE;
+						if(mem_req_ready) begin
+							next_state=WRITE_DATA_WAIT;
 							mem_req_valid = 1;
-							mem_req_data_valid=1;
+							//mem_req_data_valid=1;
 							mem_req_addr = cpu_mem_addr_new; 
-							mem_req_data_bits = shifted_data_new;
-							mem_req_data_mask = data_bytemask_new;
+							//mem_req_data_bits = shifted_data_new;
+							//mem_req_data_mask = data_bytemask_new;
+							mem_req_rw = MEMORY_WRITE; 
 						end else begin
 							next_state=WRITE_WAIT;
 						end
 					end
 				end else next_state = INIT;			
 				//END INIT block
+		end
+
+		WRITE_DATA_WAIT: begin
+			if(mem_req_data_ready) begin
+				mem_req_data_valid=1;
+				mem_req_data_bits = shifted_data;
+				mem_req_data_mask = data_bytemask;
+				next_state = WRITE_DONE;
+
+				if((cpu_tag == cache_tag)&&valid) begin //write hit
+					data_web = WEB_WRITE;
+					data_addr_input = data_addr;
+					data_write = shifted_data;
+					cpu_req_ready = 0;		
+				end	
+
+			end else begin
+				next_state=WRITE_DATA_WAIT;
 			end
 		end
+
 
 		WRITE_WAIT: begin
 			//Need to keep reading the cache_tag while we wait
@@ -488,13 +558,11 @@ always@(*) begin
 			tag_addr_input = tag_addr;
 			tag_web=WEB_READ;
 	
-			if(mem_req_ready & mem_req_data_ready) begin
-				next_state=WRITE;
+			if(mem_req_ready) begin
+				next_state=WRITE_DATA_WAIT;
 				mem_req_valid = 1;
-				mem_req_data_valid=1;
-				mem_req_addr = mem_addr; 
-				mem_req_data_bits = shifted_data;
-				mem_req_data_mask = data_bytemask;
+				mem_req_addr = mem_addr;
+				mem_req_rw = MEMORY_WRITE; 
 			end else begin
 				next_state=WRITE_WAIT;
 			end
