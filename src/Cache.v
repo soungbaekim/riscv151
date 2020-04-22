@@ -91,6 +91,9 @@ reg[31:0] cpu_write_data_next;
 reg [15:0] data_bytemask_new;
 wire [3:0] cpu_write_mask;
 reg [3:0] cpu_write_mask_next;
+wire [31:0] cache_output;
+reg [31:0] cache_output_next;
+
 
 REGISTER_R #(.N(23)) cpu_tag_reg(.q(cpu_tag), .d(cpu_tag_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(8)) tag_addr_reg(.q(tag_addr), .d(tag_addr_next), .rst(reset), .clk(clk));
@@ -99,6 +102,7 @@ REGISTER_R #(.N(2)) word_offset_reg(.q(word_offset), .d(word_offset_next), .rst(
 REGISTER_R #(.N(28)) med_addr_reg(.q(mem_addr), .d(mem_addr_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(32)) cpu_write_data_reg(.q(cpu_write_data), .d(cpu_write_data_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(4)) cpu_write_mask_reg(.q(cpu_write_mask), .d(cpu_write_mask_next), .rst(reset), .clk(clk));
+REGISTER_R #(.N(32)) cache_output_reg(.q(cache_output), .d(cache_output_next), .rst(reset), .clk(clk));
 
 
 
@@ -186,7 +190,7 @@ always@(*) begin
 	cpu_write_mask_next = cpu_write_mask;
 	cpu_req_ready = 1'b0;
 	cpu_resp_valid = 1'b0;
-	cpu_resp_data = 32'd0;
+	cpu_resp_data = cache_output; //32'd0;
 	mem_req_valid = 1'b0;
 	mem_req_addr = 0;
 	mem_req_rw = MEMORY_READ;
@@ -194,6 +198,7 @@ always@(*) begin
 	mem_req_data_bits = 128'd0;
 	mem_req_data_mask = 16'hffff;		
 	next_state = INIT;
+	cache_output_next = cache_output;
 
 	case(cpu_word_offset_new)
 		2'b00: begin
@@ -278,6 +283,7 @@ always@(*) begin
 			if((cpu_tag == cache_tag)&&valid) begin //read hit
 				cpu_resp_valid=1;
 			 	cpu_resp_data = data_read_word;
+				cache_output_next = data_read_word;
 
 				//So that we can do this in one cycle, we need
 				//to have everything set like we were already
@@ -393,6 +399,7 @@ always@(*) begin
 
 		READ_MEM_DONE: begin
 			cpu_resp_data=temp_word;
+			cache_output_next = temp_word;
 			cpu_resp_valid=1;
 			cpu_req_ready=1;
 

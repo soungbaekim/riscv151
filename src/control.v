@@ -9,7 +9,7 @@ module control(
   input             clk,
   input             reset,
   input [31:0]      inst,
-  input             stall,
+  input             stall,stall_i,stall_d,
 
   // Stage I
   output [1:0]  PC_Sel,
@@ -138,7 +138,8 @@ module control(
   REGISTER_R_CE regfile_we_reg2(.q(regfile_we_imm2), .d(regfile_we_imm1), .rst(reset), .ce(~stall), .clk(clk));
   assign RegFile_WE = regfile_we_imm2 && ~nop_M && ~stall;
 
-  assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
+  //assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
+  assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : (stall_d&!stall_i) ? `PCSEL_SAME : `PCSEL_PLUS4;
   assign Inst_Kill = inst_kill_value || will_branch;
 
   assign ICache_RE = 1'b1; // ALWAYS ON?

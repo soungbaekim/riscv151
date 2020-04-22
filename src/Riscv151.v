@@ -13,7 +13,7 @@ module Riscv151(
     output [31:0] dcache_din,
     input [31:0] dcache_dout,
     input [31:0] icache_dout,
-    input stall,
+    input stall,stall_i,stall_d,
     output [31:0] csr
 
 );
@@ -273,6 +273,8 @@ control myController(
 	.reset(reset),
 	.inst(s1_inst_read),
   .stall(stall),
+.stall_i(stall_i),
+.stall_d(stall_d),
  // Stage I
 	.PC_Sel(PCsel),
  	.ICache_RE(icache_re),
