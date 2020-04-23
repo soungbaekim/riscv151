@@ -53,7 +53,7 @@ sim_dir          = $(vlsi_dir)/build/sim-rundir
 asm_output_dir   = $(vlsi_dir)/asm_output
 bmark_output_dir = $(vlsi_dir)/bmark_output
 asm_timeout_cycles   = 10000
-bmark_timeout_cycles = 5000000
+bmark_timeout_cycles = 50000000
 simv             = $(vlsi_dir)/build/sim-rundir/simv
 
 #alu_tb = ALUTestbench
