@@ -149,6 +149,9 @@ module rocketTestHarness;
         #0.1 $readmemh(loadmem, dut.mem.icache.mem.mem);
         #0.1 $readmemh(loadmem, dut.mem.dcache.mem.mem);
       `else
+	//my addition
+	#0.1 $readmemh(loadmem, dut.mem.dcache.mem.mem);
+
 //        #0.1 $readmemh(loadmem, mem.ram);
         #0.1 $readmemh(loadmem, mem.storage.mem);
        `endif
@@ -196,6 +199,8 @@ module rocketTestHarness;
       `endif
       
       //$fwrite(32'h80000002, "C%0d: INST=%h PC_x=%h A=%h B=%h ALUout=%h\n",trace_count,dut.cpu.dpath.inst_x , dut.cpu.dpath.pc_x,dut.cpu.dpath.alu_a_input_x, dut.cpu.dpath.alu_b_input_x, dut.cpu.dpath.alu_out_x);
+    
+	//$display("s1_PC=%0h: s1_inst=%h, s2_SrcA=%h, s2_SrcB=%h, s2_ALUout=%h, s2_WD=%h, dcache_we=%h, s3_ReadData=%h, s3_WB=%h", dut.cpu.s1_PC,dut.cpu.s1_inst,dut.cpu.s2_SrcA, dut.cpu.s2_SrcB,dut.cpu.s2_ALUout,dut.cpu.s2_WD,dut.cpu.dcache_we, dut.cpu.s3_ReadData, dut.cpu.s3_WB);
     end 
 
     if (max_cycles > 0 && trace_count > max_cycles) begin

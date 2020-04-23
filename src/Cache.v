@@ -274,6 +274,7 @@ always@(*) begin
 							//mem_req_data_bits = shifted_data_new;
 							//mem_req_data_mask = data_bytemask_new;
 							mem_req_rw = MEMORY_WRITE; 			
+							//data_addr_next = {cpu_data_addr_new[7:2],{2'b00}}; 
 						end else begin
 							next_state=WRITE_WAIT;
 						end
@@ -330,28 +331,12 @@ always@(*) begin
 							mem_req_addr = cpu_mem_addr_new; 
 							//mem_req_data_bits = shifted_data_new;
 							//mem_req_data_mask = data_bytemask_new;
-							mem_req_rw = MEMORY_WRITE; 					
+							mem_req_rw = MEMORY_WRITE;
+							//data_addr_next = {cpu_data_addr_new[7:2],{2'b00}}; 					
 						end else begin
 							next_state=WRITE_WAIT;
 						end
 					end
-/*
-				if(cpu_req_valid) begin
-					if(cpu_req_write==4'b0000) begin
-						next_state=READ;				
-					end else begin					
-						if(mem_req_ready & mem_req_data_ready) begin
-							next_state=WRITE;
-							mem_req_valid = 1;
-							mem_req_data_valid=1;
-							mem_req_addr = cpu_mem_addr_new; 
-							mem_req_data_bits = shifted_data_new;
-							mem_req_data_mask = data_bytemask_new;
-						end else begin
-							next_state=WRITE_WAIT;
-						end
-					end
-*/
 				end else next_state = INIT;			
 				//END INIT BLOCK
 
@@ -366,6 +351,7 @@ always@(*) begin
 				//mem_req_addr = {mem_addr[27:2],data_addr[1:0]};
 				mem_addr_next = mem_addr;
 				mem_req_addr = mem_addr;
+				data_addr_next = {data_addr[7:2],{2'b00}}; 
 				if(mem_req_ready) begin
 					next_state = READ_MEM;
 					mem_req_valid = 1'b1;
@@ -397,7 +383,7 @@ always@(*) begin
 				//Write memory data just retrieved to cache
 				data_web = WEB_WRITE;			
 				data_write = mem_resp_data;			
-				data_addr_input = {data_addr[7:2],low2_data_bits}; //low2_mem_bits};
+				data_addr_input = data_addr;
 				data_addr_next = {data_addr[7:2], low2_data_bits_increment};
 				data_bytemask = 16'hffff;
 	
@@ -417,7 +403,7 @@ always@(*) begin
 				end else begin
 					mem_req_rw = MEMORY_READ;
 					//mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
-					mem_req_addr={mem_addr[27:2],low2_mem_bits_increment};
+					//mem_req_addr={mem_addr[27:2],low2_mem_bits_increment};
 					
 					next_state=READ_MEM;
 					/*	
@@ -474,23 +460,7 @@ always@(*) begin
 							next_state=WRITE_WAIT;
 						end
 					end
-/*
-				if(cpu_req_valid) begin
-					if(cpu_req_write==4'b0000) begin
-						next_state=READ;				
-					end else begin					
-						if(mem_req_ready & mem_req_data_ready) begin
-							next_state=WRITE;
-							mem_req_valid = 1;
-							mem_req_data_valid=1;
-							mem_req_addr = cpu_mem_addr_new; 
-							mem_req_data_bits = shifted_data_new;
-							mem_req_data_mask = data_bytemask_new;
-						end else begin
-							next_state=WRITE_WAIT;
-						end
-					end
-*/
+
 				end else next_state = INIT;			
 				//END INIT BLOCK
 		end
