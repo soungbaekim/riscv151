@@ -78,7 +78,7 @@ assign stall_i = ~i_stall_n;
 assign stall_d = ~d_stall_n;
 
 
-/*
+
 `else
 cache icache (
   .clk(clk),
@@ -156,7 +156,7 @@ riscv_arbiter arbiter (
   .mem_resp_tag(mem_resp_tag)
 );
 `endif
-*/
+
 
 /*
 `else
@@ -225,7 +225,7 @@ riscv_arbiter arbiter (
 `endif
 */
 
-
+/*
 `else
 cache icache (
   .clk(clk),
@@ -296,7 +296,7 @@ riscv_arbiter arbiter (
   .mem_resp_tag(mem_resp_tag)
 );
 `endif
-
+*/
 
 
 endmodule

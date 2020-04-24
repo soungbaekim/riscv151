@@ -41,12 +41,12 @@ parameter MEMORY_WRITE = 1'b1;
 
 parameter INIT = 3'b000;
 parameter READ = 3'b001;
-parameter WRITE_DONE = 3'b110;
+parameter WRITE_DONE = 3'b111;
 parameter READ_MEM = 3'b010;
 parameter READ_MEM_WAIT = 3'b011;
 parameter WRITE_WAIT = 3'b101;
 parameter READ_MEM_DONE = 3'b100;
-parameter WRITE_DATA_WAIT = 3'b111;
+parameter WRITE_DATA_WAIT = 3'b110;
 
 //SRAM signals
 reg data_web;

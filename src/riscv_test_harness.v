@@ -150,10 +150,10 @@ module rocketTestHarness;
         #0.1 $readmemh(loadmem, dut.mem.dcache.mem.mem);
       `else
 	//my addition
-	#0.1 $readmemh(loadmem, dut.mem.dcache.mem.mem);
+	//#0.1 $readmemh(loadmem, dut.mem.icache.mem.mem);
 
 //        #0.1 $readmemh(loadmem, mem.ram);
-        #0.1 $readmemh(loadmem, mem.storage.mem);
+        #0.1 $readmemh(loadmem, mem.storage.mem); //fuck this line
        `endif
     verbose = $test$plusargs("verbose");
 `ifdef DEBUG

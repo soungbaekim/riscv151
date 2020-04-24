@@ -7,3 +7,4 @@ asm_output/*
 *.input
 DVE*
 bmark_output/*
+*.tar.gz
