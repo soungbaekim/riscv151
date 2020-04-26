@@ -9,7 +9,6 @@ module cache #
 (
   input clk,
   input reset,
-
   input                       cpu_req_valid,
   output reg                  cpu_req_ready,
   input [WORD_ADDR_BITS-1:0]  cpu_req_addr,
@@ -60,8 +59,6 @@ reg [31:0] tag_write;
 wire [31:0] tag_read;
 reg [7:0] tag_addr_input;
 
-
-
 wire [7:0] cpu_data_addr_new;
 wire [7:0] cpu_tag_addr_new;
 wire [22:0] cpu_tag_new;
@@ -88,40 +85,28 @@ wire [27:0] mem_addr;
 reg [27:0] mem_addr_next;
 wire[31:0] cpu_write_data;
 reg[31:0] cpu_write_data_next;
-reg [15:0] data_bytemask_new;
 wire [3:0] cpu_write_mask;
 reg [3:0] cpu_write_mask_next;
 wire [31:0] cache_output;
 reg [31:0] cache_output_next;
 
-
 REGISTER_R #(.N(23)) cpu_tag_reg(.q(cpu_tag), .d(cpu_tag_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(8)) tag_addr_reg(.q(tag_addr), .d(tag_addr_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(8)) data_addr_reg(.q(data_addr), .d(data_addr_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(2)) word_offset_reg(.q(word_offset), .d(word_offset_next), .rst(reset), .clk(clk));
-REGISTER_R #(.N(28)) med_addr_reg(.q(mem_addr), .d(mem_addr_next), .rst(reset), .clk(clk));
+REGISTER_R #(.N(28)) mem_addr_reg(.q(mem_addr), .d(mem_addr_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(32)) cpu_write_data_reg(.q(cpu_write_data), .d(cpu_write_data_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(4)) cpu_write_mask_reg(.q(cpu_write_mask), .d(cpu_write_mask_next), .rst(reset), .clk(clk));
 REGISTER_R #(.N(32)) cache_output_reg(.q(cache_output), .d(cache_output_next), .rst(reset), .clk(clk));
 
-
-
-wire[1:0] low2_mem_bits, low2_mem_bits_increment, low2_data_bits, low2_data_bits_increment;
-assign low2_mem_bits = mem_addr[1:0];
-assign low2_mem_bits_increment = low2_mem_bits + 2'b01;
-assign low2_data_bits = data_addr[1:0];
-assign low2_data_bits_increment = low2_data_bits + 2'b01;
+wire[1:0] low2_mem_bits_increment, low2_data_bits_increment;
+assign low2_mem_bits_increment = mem_addr[1:0] + 2'b01;
+assign low2_data_bits_increment = data_addr[1:0] + 2'b01;
 
 reg [31:0] data_read_word;
-reg [127:0] shifted_data, shifted_data_new;
+reg [127:0] shifted_data;
 
-/*********************************************************************
-*  Filename      : SRAM1RW256x128.v                                 *
-*  *  SRAM name     : SRAM1RW256x128                                   *
-*  *  Word width    : 128   bits                                        *
-*  *  Word number   : 256                                               *
-*  *  Adress width  : 8     bits                                        *
-*  **********************************************************************/
+//Word width: 128bits, word number: 256, address width: 8 bits
 SRAM1RW256x128 dataSRAM(
 	.CE(clk),
 	.OEB(1'b0),
@@ -133,13 +118,7 @@ SRAM1RW256x128 dataSRAM(
 	.O(data_read)
 );
 
-/*********************************************************************
- * *  Filename      : SRAM1RW256x32.v                                  *
- * *  SRAM name     : SRAM1RW256x32                                    *
- * *  Word width    : 32    bits                                        *
- * *  Word number   : 256                                               *
- * *  Adress width  : 8     bits                                        *
- * **********************************************************************/
+//Word width: 32bits, Word number: 256, Address width: 8 bits
 SRAM1RW256x32 tagSRAM(
 	.CE(clk),
 	.OEB(1'b0),
@@ -149,7 +128,6 @@ SRAM1RW256x32 tagSRAM(
 	.I(tag_write),
 	.O(tag_read)
 );
-
 
 wire [22:0] cache_tag;
 wire valid;
@@ -167,7 +145,6 @@ REGISTER_R #(.N(2)) count_reg(.q(count), .d(next_count), .rst(reset), .clk(clk))
 wire [31:0] temp_word;
 reg [31:0] temp_word_next;
 REGISTER_R #(.N(32)) temp_word_reg(.q(temp_word), .d(temp_word_next), .rst(reset), .clk(clk));
-
 
 always@(*) begin
 	//Defaults
@@ -190,7 +167,7 @@ always@(*) begin
 	cpu_write_mask_next = cpu_write_mask;
 	cpu_req_ready = 1'b0;
 	cpu_resp_valid = 1'b0;
-	cpu_resp_data = cache_output; //32'd0;
+	cpu_resp_data = cache_output;
 	mem_req_valid = 1'b0;
 	mem_req_addr = 0;
 	mem_req_rw = MEMORY_READ;
@@ -199,29 +176,6 @@ always@(*) begin
 	mem_req_data_mask = 16'hffff;		
 	next_state = INIT;
 	cache_output_next = cache_output;
-
-	case(cpu_word_offset_new)
-		2'b00: begin
-			//data_read_word = data_read[31:0];
-			data_bytemask_new = {{12'h000},cpu_write_mask_new};
-			shifted_data_new = {{96'd0},cpu_req_data};
-		end
-		2'b01: begin
-			//data_read_word  = data_read[63:32];
-			data_bytemask_new ={{8'h00},cpu_write_mask_new,{4'h0}};
-			shifted_data_new = {{64'd0},cpu_req_data,{32'd0}};	
-		end
-		2'b10: begin
-			//data_read_word  = data_read[95:64];
-			data_bytemask_new ={{4'h0},cpu_write_mask_new,{8'h00}};
-			shifted_data_new = {{32'd0},cpu_req_data,{64'd0}};
-		end
-		2'b11: begin
-			//data_read_word = data_read[127:96];
-			data_bytemask_new ={cpu_write_mask_new,{12'h000}};
-			shifted_data_new = {cpu_req_data,{96'd0}};
-		end
-	endcase
 
 	case(word_offset)
 		2'b00: begin
@@ -250,7 +204,6 @@ always@(*) begin
 	case(state)
 		INIT: begin
 			cpu_req_ready = 1;
-
 			data_addr_next = cpu_data_addr_new;
 			data_addr_input = cpu_data_addr_new;
 			tag_addr_next = cpu_tag_addr_new;
@@ -269,33 +222,12 @@ always@(*) begin
 						if(mem_req_ready) begin
 							next_state=WRITE_DATA_WAIT;
 							mem_req_valid = 1;
-							//mem_req_data_valid=1;
-							mem_req_addr = cpu_mem_addr_new; 
-							//mem_req_data_bits = shifted_data_new;
-							//mem_req_data_mask = data_bytemask_new;
-							mem_req_rw = MEMORY_WRITE; 			
-							//data_addr_next = {cpu_data_addr_new[7:2],{2'b00}}; 
+							mem_req_addr = cpu_mem_addr_new;
+							mem_req_rw = MEMORY_WRITE; 			 
 						end else begin
 							next_state=WRITE_WAIT;
 						end
 					end
-/*
-			if(cpu_req_valid) begin
-				if(cpu_req_write==4'b0000) begin
-					next_state=READ;				
-				end else begin					
-					if(mem_req_ready & mem_req_data_ready) begin
-						next_state=WRITE;
-						mem_req_valid = 1;
-						mem_req_data_valid=1;
-						mem_req_addr = cpu_mem_addr_new; 
-						mem_req_data_bits = shifted_data_new;
-						mem_req_data_mask = data_bytemask_new;
-					end else begin
-						next_state=WRITE_WAIT;
-					end
-				end
-*/
 			end else next_state = INIT;		
 		end
 
@@ -305,9 +237,7 @@ always@(*) begin
 			 	cpu_resp_data = data_read_word;
 				cache_output_next = data_read_word;
 
-				//So that we can do this in one cycle, we need
-				//to have everything set like we were already
-				//in INIT
+				//BEGIN INIT block
 				cpu_req_ready=1;
 				data_addr_next = cpu_data_addr_new;
 				data_addr_input = cpu_data_addr_new;
@@ -327,12 +257,8 @@ always@(*) begin
 						if(mem_req_ready) begin
 							next_state=WRITE_DATA_WAIT;
 							mem_req_valid = 1;
-							//mem_req_data_valid=1;
 							mem_req_addr = cpu_mem_addr_new; 
-							//mem_req_data_bits = shifted_data_new;
-							//mem_req_data_mask = data_bytemask_new;
-							mem_req_rw = MEMORY_WRITE;
-							//data_addr_next = {cpu_data_addr_new[7:2],{2'b00}}; 					
+							mem_req_rw = MEMORY_WRITE;				
 						end else begin
 							next_state=WRITE_WAIT;
 						end
@@ -347,8 +273,6 @@ always@(*) begin
 				tag_web = WEB_WRITE;
 				tag_addr_input = tag_addr; 
 				tag_write = {{8'd0},{1'b1},cpu_tag}; //zeros, valid=1, updated tag
-				//mem_addr_next={mem_addr[27:2],data_addr[1:0]}; 
-				//mem_req_addr = {mem_addr[27:2],data_addr[1:0]};
 				mem_addr_next = mem_addr;
 				mem_req_addr = mem_addr;
 				data_addr_next = {data_addr[7:2],{2'b00}}; 
@@ -401,20 +325,8 @@ always@(*) begin
 					cpu_req_ready=0; //not ready since still writing to cache, will require a full cycle more
 					next_state = READ_MEM_DONE;
 				end else begin
-					mem_req_rw = MEMORY_READ;
-					//mem_addr_next={mem_addr[27:2],low2_mem_bits_increment};
-					//mem_req_addr={mem_addr[27:2],low2_mem_bits_increment};
-					
+					mem_req_rw = MEMORY_READ;			
 					next_state=READ_MEM;
-					/*	
-					if(mem_req_ready) begin
-						next_state = READ_MEM;
-						mem_req_valid = 1'b1;							
-					end else begin
-						mem_req_valid = 1'b0;
-						next_state = READ_MEM_WAIT;
-					end
-					*/
 				end		
 			end else begin
 				next_state = READ_MEM;
@@ -427,9 +339,7 @@ always@(*) begin
 			cpu_resp_valid=1;
 			cpu_req_ready=1;
 
-				//So that we can do this in one cycle, we need
-				//to have everything set like we were already
-				//in INIT
+				//BEGIN INIT block
 				cpu_req_ready=1;
 				data_addr_next = cpu_data_addr_new;
 				data_addr_input = cpu_data_addr_new;
@@ -451,10 +361,7 @@ always@(*) begin
 						if(mem_req_ready) begin
 							next_state=WRITE_DATA_WAIT;
 							mem_req_valid = 1;
-							//mem_req_data_valid=1;
 							mem_req_addr = cpu_mem_addr_new; 
-							//mem_req_data_bits = shifted_data_new;
-							//mem_req_data_mask = data_bytemask_new;
 							mem_req_rw = MEMORY_WRITE; 
 						end else begin
 							next_state=WRITE_WAIT;
@@ -467,9 +374,7 @@ always@(*) begin
 
 
 		WRITE_DONE: begin
-				//So that we can do this in one cycle, we need
-				//to have everything set like we were already
-				//in INIT
+				//BEGIN INIT block
 				cpu_req_ready=1;
 				data_addr_next = cpu_data_addr_new;
 				data_addr_input = cpu_data_addr_new;
@@ -489,10 +394,7 @@ always@(*) begin
 						if(mem_req_ready) begin
 							next_state=WRITE_DATA_WAIT;
 							mem_req_valid = 1;
-							//mem_req_data_valid=1;
 							mem_req_addr = cpu_mem_addr_new; 
-							//mem_req_data_bits = shifted_data_new;
-							//mem_req_data_mask = data_bytemask_new;
 							mem_req_rw = MEMORY_WRITE; 
 						end else begin
 							next_state=WRITE_WAIT;

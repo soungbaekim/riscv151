@@ -63,7 +63,7 @@ REGFILE_1W2R #(.AWIDTH(LOGDEPTH), .DWIDTH(WIDTH), .DEPTH(DEPTH)) rf (
     .d0(s3_WB), .addr0(s3_A0), .we0(RegFile_WE),
     .q1(s1_reg_SrcA), .addr1(s1_A1),
     .q2(s1_reg_SrcB), .addr2(s1_A2),
-    .clk(clk) );
+    .clk(clk), .rst(reset) );
 
 //Breaking up insruction
 wire [4:0] s1_CSR_imm;
