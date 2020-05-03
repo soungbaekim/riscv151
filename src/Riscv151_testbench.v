@@ -123,13 +123,15 @@ module Riscv151_testbench();
             if (cycle == timeout_cycle) begin
                 $display("[Failed] Timeout at [%d] test %s, expected_result = %h, got = %h",
                          current_test_id, current_test_type, current_result, current_output);
+/*
 <<<<<<< HEAD
 $vcdplusoff;                
 		$finish();
 =======
+*/
                 $dumpoff;
                 $finish();
->>>>>>> 4600aa18be6ed9ea4506c66ab761b07bd7d912ce
+//>>>>>>> 4600aa18be6ed9ea4506c66ab761b07bd7d912ce
             end
         end
     end
@@ -210,15 +212,15 @@ $vcdplusoff;
     reg [255:0] BR_NAME_NTK   [5:0];
 
     initial begin
-<<<<<<< HEAD
+/*<<<<<<< HEAD
 
 $vcdpluson;
-=======
+=======*/
         $dumpfile("Riscv151.vcd");
         $dumpvars(0, CPU);
         $dumpon;
 
->>>>>>> 4600aa18be6ed9ea4506c66ab761b07bd7d912ce
+//>>>>>>> 4600aa18be6ed9ea4506c66ab761b07bd7d912ce
         rst = 0;
         stall = 1'b0;
 
