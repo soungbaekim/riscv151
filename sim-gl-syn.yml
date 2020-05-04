@@ -20,13 +20,14 @@ simOptions: &SIM_OPTIONS
   - "+define+DEBUG"
   - "-debug"
   - "-debug_pp"
-  - "+incdir+<YOUR_LAB_ROOT_DIR>/src"
+  - "+incdir+/home/cc/eecs151/sp20/class/eecs151-abd/project_skeleton/src"
 
 simVerilogSrc: &SIM_VERILOG_SRC
-  - "<YOUR_LAB_ROOT_DIR>/build/syn-rundir/riscv_top.mapped.v"
-  - "<YOUR_LAB_ROOT_DIR>/src/riscv_test_harness.v"
-  - "<YOUR_LAB_ROOT_DIR>/src/ExtMemModel.v"
+  - "/home/cc/eecs151/sp20/class/eecs151-abd/project_skeleton/build/syn-rundir/riscv_top.mapped.v"
+  - "/home/cc/eecs151/sp20/class/eecs151-abd/project_skeleton/src/riscv_test_harness.v"
+  - "/home/cc/eecs151/sp20/class/eecs151-abd/project_skeleton/src/ExtMemModel.v"
   - "/home/ff/eecs151/hammer/src/hammer-vlsi/technology/asap7/sram_compiler/memories/behavioral/sram_behav_models.v"
+  - "/home/ff/eecs151/verilog_lib/EECS151.v"
 
 tb_name: &TB_NAME "rocketTestHarness"
 
@@ -40,6 +41,5 @@ sim.inputs:
   tb_name:     *TB_NAME
   defines: 
     - *SIM_CLK_PERIOD
-    - *SIM_INPUT_DELAY
   execute_sim: false
 

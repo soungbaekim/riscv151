@@ -162,6 +162,7 @@ module control(
 
     //BRANCHES
     in_b_next = 1'b0;
+    BrUn_next = 1'b0;
 
     if (in_b_val == 1'b1) begin
       case (func3_X)
