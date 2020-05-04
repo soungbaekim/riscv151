@@ -1,4 +1,5 @@
 `include "const.vh"
+`include "util.vh"
 
 module cache #
 (
@@ -180,17 +181,14 @@ always@(*) begin
 			shifted_data = {cpu_write_data,{96'd0}};
 		end
 	endcase
-end
 
-
-
-always@(*) begin
 	//Defaults
 	mem_req_valid=0;
 	next_count = 2'd0;
 	cpu_req_ready = 0;
 	tag_web = WEB_READ;
 	data_web = WEB_READ;
+	data_write = 32'd0;
 	tag_write = 32'd0;
 	cpu_tag_next = cpu_tag;
 	tag_addr_next = tag_addr;
@@ -545,10 +543,7 @@ always@(*) begin
 			shifted_data = {cpu_write_data,{96'd0}};
 		end
 	endcase
-end
 
-
-always@(*) begin
 	//Defaults
 	mem_req_valid=0;
 	next_count = 2'd0;
@@ -557,6 +552,9 @@ always@(*) begin
 	data_web1 = WEB_READ;
 	tag_web2 = WEB_READ;
 	data_web2 = WEB_READ;
+	data_write = 32'd0;
+	data_read = 128'd0;
+	tag_write = 32'd0;
 	cpu_tag_next = cpu_tag;
 	tag_addr_next = tag_addr;
 	data_addr_next = data_addr;

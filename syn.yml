@@ -10,7 +10,8 @@ verilogSrc: &VERILOG_SRC
   - "src/riscv_arbiter.v"
   - "src/riscv_top.v"
   # Add more source files here if you need
-
+  - "src/control.v"
+  - "src/Cache.v"
 
 # Specify clock signals
 vlsi.inputs.clocks: [

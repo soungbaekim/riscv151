@@ -169,6 +169,7 @@ module control(
         `FNC_BNE: will_branch = (BrEq == 1'b0) ? 1'b1 : 1'b0;
         `FNC_BLT, `FNC_BLTU: will_branch = (BrLT == 1'b1) ? 1'b1 : 1'b0;
         `FNC_BGE, `FNC_BGEU: will_branch = ((BrEq == 1'b1) || (BrLT == 1'b0)) ? 1'b1 : 1'b0;
+	default: will_branch = 1'b0;
       endcase
     end
     else begin
