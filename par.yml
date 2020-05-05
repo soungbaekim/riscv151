@@ -126,4 +126,4 @@ par.innovus.use_cco: true
 # All the placement constraints specified above will be ignored.
 # This might lead to poor QoR and more DRVs.
 
-#par.innovus.floorplan_mode: auto
+par.innovus.floorplan_mode: auto

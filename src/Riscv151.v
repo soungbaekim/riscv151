@@ -29,9 +29,12 @@ wire dcache_re;
 wire [31:0] s1_PC, s1_PCplus4;
 reg [31:0] s0_PC;
 wire [1:0] PCsel; //from controller, 0 for PC+4, 1 from ALU, 2 for PC
-assign s1_PCplus4 = s1_PC + 4;
+//assign s1_PCplus4 = s1_PC + 4;
+assign s1_PCplus4 = (reset) ? `PC_RESET_MINUS4 : s1_PC + 4;
 wire [31:0] s2_ALUout;
 REGISTER_R_CE #(.N(WIDTH), .INIT(`PC_RESET_MINUS4)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .ce(~stall), .clk(clk));
+//REGISTER_R_CE #(.N(WIDTH)) pc_reg(.q(s1_PC), .d(s0_PC), .rst(reset), .ce(~stall), .clk(clk));
+
 always@(*) begin
 	case(PCsel)
 		2'd0: s0_PC=s1_PCplus4;
@@ -51,6 +54,8 @@ assign s1_inst_read = icache_dout;
 wire [31:0] s1_inst;
 wire inst_kill; //from controller
 assign s1_inst = (inst_kill) ? `INSTR_NOP : s1_inst_read;
+//assign s1_inst = s1_inst_read;
+
 
 //Register file
 wire [31:0] s1_reg_SrcA, s1_reg_SrcB;

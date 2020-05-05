@@ -1,4 +1,5 @@
 `include "util.vh"
+`include "const.vh"
 
 module ExtMemModel
 (
@@ -51,7 +52,7 @@ module ExtMemModel
 
   wire [`ceilLog2(DATA_CYCLES)-1:0] cnt_val, cnt_next;
   wire cnt_ce;
-  REGISTER_R_CE #(.N(`ceilLog2(DATA_CYCLES)), .INIT(0)) cnt_reg (
+  REGISTER_R_CE_V2 #(.N(`ceilLog2(DATA_CYCLES)), .INIT(0)) cnt_reg (
     .q(cnt_val), .d(cnt_next), .ce(cnt_ce), .rst(reset), .clk(clk));
 
   wire mem_req_fire      = mem_req_valid & mem_req_ready;
@@ -64,7 +65,7 @@ module ExtMemModel
   wire [1:0] state_val;
   reg [1:0]  next_state;
 
-  REGISTER_R #(.N(2), .INIT(STATE_IDLE)) state_reg (
+  REGISTER_R_V2 #(.N(2), .INIT(STATE_IDLE)) state_reg (
     .q(state_val), .d(next_state), .rst(reset), .clk(clk));
 
   always @(*) begin
@@ -88,11 +89,11 @@ module ExtMemModel
   end
 
   wire [`MEM_TAG_BITS-1:0] tag_reg_val;
-  REGISTER_R_CE #(.N(`MEM_TAG_BITS), .INIT(0)) tag_reg (
+  REGISTER_R_CE_V2 #(.N(`MEM_TAG_BITS), .INIT(0)) tag_reg (
     .q(tag_reg_val), .d(mem_req_tag), .ce(mem_req_fire), .rst(reset), .clk(clk));
 
   wire [`MEM_ADDR_BITS-1:0] addr_reg_val;
-  REGISTER_R_CE #(.N(`MEM_ADDR_BITS), .INIT(0)) addr_reg (
+  REGISTER_R_CE_V2 #(.N(`MEM_ADDR_BITS), .INIT(0)) addr_reg (
     .q(addr_reg_val), .d(mem_req_addr), .ce(mem_req_fire), .rst(reset), .clk(clk));
 
   assign cnt_next = cnt_val + 1;

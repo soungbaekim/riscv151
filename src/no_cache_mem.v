@@ -58,15 +58,16 @@ module no_cache_mem #(
   wire cpu_req_fire = cpu_req_valid & cpu_req_ready;
 
   // One cycle delay from CPU Request to CPU Response
-  REGISTER_R_CE #(.N(CPU_WIDTH), .INIT(0)) read_data_reg (
-    .q(cpu_resp_data),
+ // REGISTER_R_CE #(.N(CPU_WIDTH), .INIT(0)) read_data_reg (
+  REGISTER_R_CE_32 #(.N(32), .INIT(0)) read_data_reg (
+   .q(cpu_resp_data),
     .d(read_data[CPU_WIDTH-1:0]),
     .ce(cpu_req_fire & ~(|(cpu_req_write))),
     .rst(reset),
     .clk(clk)
   );
 
-  REGISTER_R_CE #(.N(1), .INIT(0)) cpu_resp_valid_reg (
+  REGISTER_R_CE_32 #(.N(1), .INIT(0)) cpu_resp_valid_reg (
     .q(cpu_resp_valid),
     .d(cpu_req_write ? 1'b0 : 1'b1),
     .ce(cpu_req_fire),

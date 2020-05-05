@@ -139,7 +139,16 @@ module control(
   assign RegFile_WE = regfile_we_imm2 && ~nop_M && ~stall;
 
   //assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : `PCSEL_PLUS4;
-  assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : (stall_d&!stall_i) ? `PCSEL_SAME : `PCSEL_PLUS4;
+ // assign PC_Sel = (Inst_Kill == 1'b1) ? `PCSEL_ALU : (stall_d&!stall_i) ? `PCSEL_SAME : `PCSEL_PLUS4;
+   //assign PC_Sel = (Inst_Kill == 1'b1) ? 2'b01 : (stall_d&!stall_i) ? 2'b10 : 2'b00;
+
+   wire [1:0] PC_Sel_sel;
+   assign PC_Sel_sel = (stall_d&!stall_i) ? 2'b10 : 2'b00;
+   assign PC_Sel = (Inst_Kill == 1'b1) ? 2'b01 : PC_Sel_sel;
+    //assign PC_Sel = 2'b00;
+
+
+
   assign Inst_Kill = inst_kill_value || will_branch;
 
   assign ICache_RE = 1'b1; // ALWAYS ON?

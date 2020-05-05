@@ -16,8 +16,11 @@
 // PC address on reset
 //`define PC_RESET 32'h00002000
 //`define PC_RESET_MINUS4 32'h00001ffc
+//`define PC_RESET 32'h1000_2000
+//`define PC_RESET_MINUS4 32'h1000_1ffc
 `define PC_RESET 32'h1000_0000
 `define PC_RESET_MINUS4 32'h0fff_fffc
+
 
 
 // The NOP instruction

@@ -2,6 +2,7 @@
 clockPeriod: &CLK_PERIOD "2.0ns"
 verilogSrc: &VERILOG_SRC
   - "/home/ff/eecs151/verilog_lib/EECS151.v"
+#  - "src/EECS151.v"
   - "src/ALUdec.v"
   - "src/ALU.v"
   - "src/Cache.v"
@@ -11,7 +12,6 @@ verilogSrc: &VERILOG_SRC
   - "src/riscv_top.v"
   # Add more source files here if you need
   - "src/control.v"
-  - "src/Cache.v"
 
 # Specify clock signals
 vlsi.inputs.clocks: [
@@ -21,4 +21,5 @@ vlsi.inputs.clocks: [
 # Synthesis Constraints
 synthesis.inputs:
   top_module: "riscv_top"
+  #top_module: "Riscv151"
   input_files: *VERILOG_SRC
